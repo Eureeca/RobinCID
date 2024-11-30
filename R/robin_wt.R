@@ -59,9 +59,10 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
 
   fit <- glm(formula, family = family, data = data, ...)
 
-  pc <- predict_counterfactual(fit, treatment, data)
+  pc <- predict_counterfactual(fit = fit, treatment = treatment,
+                               treatments_for_compare = treatments_for_compare,prob_mat = prob_mat, data = data)
 
-  has_interaction <- h_interaction(formula, treatment)
+  # has_interaction <- h_interaction(formula, treatment)
 
 
   if (identical(contrast, "difference")) {
