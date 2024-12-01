@@ -7,7 +7,7 @@
 \alias{odds_ratio}
 \title{Treatment Effect}
 \usage{
-treatment_effect(object, pair, eff_measure, eff_jacobian, ...)
+treatment_effect(object, pair, eff_measure, eff_jacobian, alpha, ...)
 
 difference(object, ...)
 
@@ -24,7 +24,9 @@ odds_ratio(object, ...)
 
 \item{eff_jacobian}{(\code{function}) Treatment effect jacobian function.}
 
-\item{...}{Additional arguments for variance.}
+\item{alpha}{Nominal level}
+
+\item{...}{Additional arguments passed to \code{glm}}
 }
 \description{
 Obtain treatment effect and variance from counter-factual prediction

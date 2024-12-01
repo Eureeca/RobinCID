@@ -14,6 +14,7 @@ robin_wt(
   contrast_jac = NULL,
   family = gaussian(),
   stabilize = T,
+  alpha = 0.05,
   ...
 )
 }
@@ -37,19 +38,24 @@ default contrasts.}
 \item{family}{(\code{family}) A family object of the glm model.}
 
 \item{stabilize}{(\code{logical}) Whether to stabilize}
+
+\item{alpha}{(\code{double}) Nominal level}
+
+\item{...}{Additional arguments passed to \code{glm}}
 }
 \description{
 Inverse probability weighting based model
 }
 \examples{
 robin_wt(
-  formula = y ~ treatment * x,
-  data = dummy_data,
-  treatment = treatment,
+  formula = y ~ xb + xc,
+  data = example,
+  treatment = "treatment",
   prob_mat = prob_mat,
-  treatments_for_compare = c(1,2),
+  treatments_for_compare = c("1","2"),
   contrast = "difference",
   contrast_jac=NULL,
   family=gaussian(),
-  stabilize=T)
+  stabilize=TRUE,
+  alpha=0.05)
 }

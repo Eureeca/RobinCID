@@ -5,22 +5,29 @@
 \title{Counterfactual Prediction}
 \usage{
 predict_counterfactual(
-  fit,
+  fit.j,
+  fit.k,
   treatment,
   treatments_for_compare,
   prob_mat,
   data,
-  ...
+  stabilize
 )
 }
 \arguments{
-\item{fit}{fitted object.}
+\item{fit.j}{fitted object for trt j.}
+
+\item{fit.k}{fitted object for trt k.}
 
 \item{treatment}{name of treatment column}
 
 \item{treatments_for_compare}{(\code{character}) Treatments for comparison}
 
+\item{prob_mat}{(\code{data.frame}) treatment assignment probabilities}
+
 \item{data}{(\code{data.frame}) raw dataset.}
+
+\item{stabilize}{stabilize}
 }
 \value{
 Numeric matrix of counter factual prediction.

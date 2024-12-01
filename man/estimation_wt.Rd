@@ -2,7 +2,7 @@
 % Please edit documentation in R/estimation_wt.R
 \name{estimation_wt}
 \alias{estimation_wt}
-\title{Title}
+\title{Compute Estimates and Covariance Matrix}
 \usage{
 estimation_wt(
   ret,
@@ -11,8 +11,7 @@ estimation_wt(
   treatments_for_compare,
   data,
   prob_mat,
-  stabilize = T,
-  ...
+  stabilize = T
 )
 }
 \arguments{
@@ -29,9 +28,7 @@ estimation_wt(
 \item{prob_mat}{(\code{data.frame}) treatment assignment probability}
 
 \item{stabilize}{(\code{logical}) whether to stabilize}
-
-\item{...}{}
 }
 \description{
-Title
+Compute Estimates and Covariance Matrix
 }

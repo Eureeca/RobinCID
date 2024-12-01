@@ -1,63 +1,61 @@
 #' Counterfactual Prediction
 #' @description Obtain counterfactual prediction of a fit.
 #'
-#' @param fit fitted object.
+#' @param fit.j fitted object for trt j.
+#' @param fit.k fitted object for trt k.
 #' @param treatment name of treatment column
 #' @param treatments_for_compare (`character`) Treatments for comparison
 #' @param data (`data.frame`) raw dataset.
+#' @param prob_mat (`data.frame`) treatment assignment probabilities
+#' @param stabilize stabilize
 #'
 #' @return Numeric matrix of counter factual prediction.
 #'
 #' @export
-predict_counterfactual <- function(fit, treatment, treatments_for_compare, prob_mat, data,...) {
-  UseMethod("predict_counterfactual", fit)
+predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, data,stabilize) {
+  UseMethod("predict_counterfactual", fit.j)
 }
 
 #' @export
-predict_counterfactual.lm <- function(fit, treatment, treatments_for_compare, prob_mat, data = find_data(fit), ...) {
-  assert_data_frame(data)
-  assert_subset(treatment, colnames(data))
-  formula <- formula(fit)
-  assert_subset(treatment, all.vars(formula[[3]]))
+predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_compare,
+                                      prob_mat, data = merge(find_data(fit.j),find_data(fit.k)),stabilize) {
+  checkmate::assert_data_frame(data)
+  checkmate::assert_subset(treatment, colnames(data))
+  formula <- formula(fit.j)
 
   treatments_for_compare <- as.factor(treatments_for_compare)
   data[[treatment]] <- as.factor(data[[treatment]])
-  assert(
-    test_character(data[[treatment]]),
-    test_factor(data[[treatment]])
+  checkmate::assert(
+    checkmate::test_character(data[[treatment]]),
+    checkmate::test_factor(data[[treatment]])
   )
 
+  ECE_size = nrow(data)
 
-  trt_lvls <- levels(treatments_for_compare)
-  n_lvls <- length(trt_lvls)
+  trt_lvls <- treatments_for_compare
+  n_lvls <- length(treatments_for_compare)
 
-  df <- lapply(
-    data,
-    function(i) {
-      rep(i, times = n_lvls)
-    }
-  )
+  preds_linear.j <- predict(fit.j, newdata = data, type="link")
+  preds_linear.k <- predict(fit.k, newdata = data, type="link")
 
-  df[[treatment]] <- rep(trt_lvls, each = nrow(data))
+  preds.j <- predict(fit.j, newdata = data, type="response")
+  preds.k <- predict(fit.k, newdata = data, type="response")
 
-  mm <- model.matrix(fit, data = df)
-  pred_linear <- mm %*% coefficients(fit)
-  preds <- family(fit)$linkinv(pred_linear)
-
-  ret <- matrix(preds, ncol = n_lvls, dimnames = list(row.names(data), trt_lvls))
-  y <- model.response(fit$model)
-  residual <- y - fitted(fit)
+  pred_linear <- matrix(c(preds_linear.j, preds_linear.k), ncol = n_lvls, dimnames = list(row.names(data), trt_lvls))
+  ret <- matrix(c(preds.j, preds.k), ncol = n_lvls, dimnames = list(row.names(data), trt_lvls))
+  y <- data[[all.vars(fit.j$formula)[1]]]
 
   estimation <- estimation_wt(ret, y, treatment, treatments_for_compare, data, prob_mat, stabilize=stabilize)
 
   structure(
     .Data = estimation,
-    residual = residual,
+    sample_size = ECE_size,
     predictions = ret,
     predictions_linear = pred_linear,
     response = y,
-    fit = fit,
-    model_matrix = mm,
+    fit.j = fit.j,
+    fit.k = fit.k,
+    prob_mat = prob_mat[treatments_for_compare],
     treatment_name = treatment,
     treatment = data[[treatment]],
     class = "prediction_cf"
@@ -65,7 +63,8 @@ predict_counterfactual.lm <- function(fit, treatment, treatments_for_compare, pr
 }
 
 #' @export
-predict_counterfactual.glm <- function(fit, treatment, treatments_for_compare, prob_mat, data = find_data(fit), ...) {
-  predict_counterfactual.lm(fit = fit, treatment = treatment,
-                            treatments_for_compare = treatments_for_compare,prob_mat, data = data,...)
+predict_counterfactual.glm <- function(fit.j,fit.k, treatment, treatments_for_compare,
+                                       prob_mat, data = merge(find_data(fit.j),find_data(fit.k)),stabilize, ...) {
+  predict_counterfactual.lm(fit.j = fit.j,fit.k=fit.k, treatment = treatment,
+                            treatments_for_compare = treatments_for_compare,prob_mat, data = data,stabilize,...)
 }

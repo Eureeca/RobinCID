@@ -5,38 +5,42 @@
 #' @param pair (`integer` or `character`) Names or index of the treatment levels.
 #' @param eff_measure (`function`) Treatment effect measurement function.
 #' @param eff_jacobian (`function`) Treatment effect jacobian function.
-#' @param ... Additional arguments for variance.
+#' @param alpha Nominal level
+#' @param ... Additional arguments passed to `glm`
 #'
 #' @export
-treatment_effect <- function(object, pair, eff_measure, eff_jacobian, ...) {
+treatment_effect <- function(object, pair, eff_measure, eff_jacobian,alpha, ...) {
   UseMethod("treatment_effect", object)
 }
 
 #' @export
 treatment_effect.prediction_cf <- function(
-    object, pair = names(object), eff_measure, eff_jacobian, ...) {
+    object, pair = names(object), eff_measure, eff_jacobian,alpha, ...) {
 
   checkmate::assert_function(eff_measure)
+  contrast_name = deparse(substitute(eff_measure))
+  contrast = ifelse(contrast_name=="h_diff", "difference",
+                    ifelse(contrast_name=="h_ratio","ratio",
+                           ifelse(contrast_name=="h_odds_ratio", "odds ratio", "customized")))
   if (missing(pair)) {
-    pair <- names(object)
+    pair <- names(object$estimate)
   }
   checkmate::assert_vector(pair)
   checkmate::assert(
-    checkmate::test_subset(pair, names(object)),
-    checkmate::test_integerish(pair, lower = 1L, upper = length(object))
+    checkmate::test_subset(pair, names(object$estimate)),
+    checkmate::test_integerish(pair, lower = 1L, upper = length(object$estimate))
   )
   if (checkmate::test_integerish(pair)) {
-    pair <- names(object)[pair]
+    pair <- names(object$estimate)[pair]
   }
-  trt_effect <- unname(eff_measure(object[pair]))
+  trt_effect <- unname(eff_measure(object$estimate[pair]))
 
-
-  inner_variance <- do.call("vcov", list(object))[pair, pair]
+  inner_variance <- object$inner_variance
   if (missing(eff_jacobian)) {
     trt_jac <- numDeriv::jacobian(eff_measure, object[pair])
   } else {
     assert_function(eff_jacobian)
-    trt_jac <- eff_jacobian(object[pair])
+    trt_jac <- eff_jacobian(object$estimate[pair])
   }
   trt_var <- trt_jac %*% inner_variance %*% t(trt_jac)
 
@@ -44,11 +48,17 @@ treatment_effect.prediction_cf <- function(
   pair_names <- outer(pair, pair, FUN = paste, sep = " - ")
   structure(
     .Data = trt_effect,
+    mm_name = pair,
     name = pair_names[lower.tri(pair_names)],
-    marginal_mean = object,
-    fit = attr(object, "fit"),
-    treatment = attr(object, "treatment_formula"),
+    marginal_mean = object$estimate,
+    fit = attr(object, "fit.j"),
+    mmvariance = object$inner_variance,
+    treatment = attr(object, "treatment_name"),
     variance = diag(trt_var),
+    prob_mat = attr(object, "prob_mat"),
+    sample_size = attr(object, "sample_size"),
+    alpha = alpha,
+    contrast = contrast,
     class = "treatment_effect"
   )
 }
@@ -57,16 +67,16 @@ treatment_effect.prediction_cf <- function(
 #' @export
 #' @inheritParams predict_counterfactual
 treatment_effect.lm <- function(
-    object, pair, eff_measure, eff_jacobian, treatment, data = find_data(object), ...) {
+    object, pair, eff_measure, eff_jacobian, treatment, data = find_data(object),alpha, ...) {
   pc <- predict_counterfactual(object, data = data, treatment)
-  treatment_effect(pc, pair = pair, eff_measure = eff_measure, eff_jacobian = eff_jacobian, ...)
+  treatment_effect(pc, pair = pair, eff_measure = eff_measure, eff_jacobian = eff_jacobian, alpha=alpha,...)
 }
 
 #' @export
 treatment_effect.glm <- function(
-    object, pair, eff_measure, eff_jacobian, treatment, data = find_data(object), ...) {
+    object, pair, eff_measure, eff_jacobian, treatment, data = find_data(object),alpha, ...) {
   pc <- predict_counterfactual(object, treatment, data)
-  treatment_effect(pc, pair = pair, eff_measure = eff_measure, eff_jacobian = eff_jacobian, ...)
+  treatment_effect(pc, pair = pair, eff_measure = eff_measure, eff_jacobian = eff_jacobian,alpha=alpha, ...)
 }
 
 #' @rdname treatment_effect
@@ -159,36 +169,77 @@ h_lower_tri_idx <- function(n) {
 
 #' @export
 print.treatment_effect <- function(x, ...) {
-  cat("Treatment Effect\n")
-  cat("-------------\n")
-  cat("Model        : ", deparse(as.formula(attr(x, "fit"))), "\n")
-  cat("Randomization: ", deparse(attr(x, "treatment")), "\n")
+  alpha <- attr(x,"alpha")
+  prob_mat <- attr(x, "prob_mat")
+  row_counts <- apply(prob_mat, 1, function(row) paste(row, collapse = ", "))
+  unique_counts <- table(row_counts)
+  proportions <- round(unique_counts / nrow(prob_mat),2)
+
+  cat("Model : ", deparse(as.formula(attr(x, "fit"))), "\n")
+  cat("Family: ", attr(x, "fit")$family[[1]], "\n")
+
+  cat("Randomization Probabilities (among the entire concurrent and eligible (ECE) samples):", "\n")
+  cat("  Total Sample Size: ",attr(x,"sample_size"),"\n")
+  prob_tab <- matrix(
+    c(names(proportions),
+      unique_counts,
+      proportions),
+    nrow = length(names(proportions))
+  )
+  colnames(prob_tab) <- c("Unique.Level", "Sample.Size","Proportion")
+  row.names(prob_tab) <- 1:nrow(prob_tab)
+  print(prob_tab)
+  cat("\n")
+  cat("Nominal Level: ", alpha, "\n")
+  cat("---------------------------\n")
   cat("Marginal Mean: \n")
-  print(attr(x, "marginal_mean"))
-  if (!identical(attr(x, "vartype"), "none")) {
-    v <- attr(x, "mmvariance")
-    cat("Marginal Mean Variance: \n")
-    print(sqrt(diag(v)))
-    cat("\n\n")
-  }
-  cat("Variance Type: ", attr(x, "vartype"), "\n")
-  if (identical(attr(x, "vartype"), "none")) {
-    trt_sd <- rep(NA, length(x))
-  } else {
-    trt_sd <- sqrt(attr(x, "variance"))
-  }
+
+  mm = as.numeric(attr(x, "marginal_mean"))
+  trt_sd <- sqrt(diag(attr(x, "mmvariance")))
+  z_value <- mm / trt_sd
+  p <- 2 * pnorm(abs(z_value), lower.tail = FALSE)
+  ci.lb = mm - qnorm(1-alpha/2) * trt_sd
+  ci.ub = mm + qnorm(1-alpha/2) * trt_sd
+  coef_mat <- matrix(
+    c(
+      mm,
+      trt_sd,
+      z_value,
+      ci.lb,
+      ci.ub,
+      p
+    ),
+    nrow = length(mm)
+  )
+  colnames(coef_mat) <- c("Estimate", "Std.Err","Z Value", "lower.CL", "upper.CL", "Pr(>|z|)")
+  row.names(coef_mat) <- attr(x, "mm_name")
+  stats::printCoefmat(
+    coef_mat,
+    zap.ind = 3,
+    digits = 3
+  )
+  cat("\n")
+  cat("---------------------------\n")
+  cat("Treatment Effect: \n")
+  cat("Contrast: ", attr(x, "contrast"),"\n")
+
+  trt_sd <- sqrt(attr(x, "variance"))
   z_value <- as.numeric(x) / trt_sd
+  ci.lb = x - qnorm(1-alpha/2) * trt_sd
+  ci.ub = x + qnorm(1-alpha/2) * trt_sd
   p <- 2 * pnorm(abs(z_value), lower.tail = FALSE)
   coef_mat <- matrix(
     c(
       x,
       trt_sd,
       z_value,
+      ci.lb,
+      ci.ub,
       p
     ),
     nrow = length(x)
   )
-  colnames(coef_mat) <- c("Estimate", "Std.Err", "Z Value", "Pr(>|z|)")
+  colnames(coef_mat) <- c("Estimate", "Std.Err", "Z Value","lower.CL", "upper.CL",  "Pr(>|z|)")
   row.names(coef_mat) <- attr(x, "name")
   stats::printCoefmat(
     coef_mat,

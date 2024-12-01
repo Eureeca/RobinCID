@@ -11,22 +11,25 @@
 #' default contrasts.
 #' @param family (`family`) A family object of the glm model.
 #' @param stabilize (`logical`) Whether to stabilize
+#' @param alpha (`double`) Nominal level
+#' @param ... Additional arguments passed to `glm`
 #'
 #' @export
 #'
 #' @examples
 #' robin_wt(
-#'   formula = y ~ treatment * x,
-#'   data = dummy_data,
-#'   treatment = treatment,
+#'   formula = y ~ xb + xc,
+#'   data = example,
+#'   treatment = "treatment",
 #'   prob_mat = prob_mat,
-#'   treatments_for_compare = c(1,2),
+#'   treatments_for_compare = c("1","2"),
 #'   contrast = "difference",
 #'   contrast_jac=NULL,
 #'   family=gaussian(),
-#'   stabilize=T)
+#'   stabilize=TRUE,
+#'   alpha=0.05)
 robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
-                     contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=T, ...){
+                     contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=T, alpha=0.05, ...){
 
   # Example: robin_wt(formula=y ~ treatment * x, data = dummy_data, treatment = treatment, prob_mat,
   # treatments_for_compare=, contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=T)
@@ -52,25 +55,34 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
   checkmate::assert_subset(all.vars(formula), names(data))
   checkmate::assert_subset(treatment, names(data))
   checkmate::assert_subset(treatments_for_compare, names(prob_mat))
-  checkmate::assert_subset(treatments_for_compare, data[[treatment]])
+  checkmate::assert_subset(as.character(treatments_for_compare), as.character(data[[treatment]]))
+
+  data[[treatment]] <- as.factor(data[[treatment]])
+  treatments_for_compare <- factor(treatments_for_compare, levels=levels(data[[treatment]]))
+  checkmate::assert(
+    checkmate::test_character(data[[treatment]]),
+    checkmate::test_factor(data[[treatment]])
+  )
 
   # ECE sample
   data <- data[apply(prob_mat[treatments_for_compare]>0, 1, all),]
+  prob_mat <- prob_mat[apply(prob_mat[treatments_for_compare]>0, 1, all),]
 
-  fit <- glm(formula, family = family, data = data, ...)
-
-  pc <- predict_counterfactual(fit = fit, treatment = treatment,
-                               treatments_for_compare = treatments_for_compare,prob_mat = prob_mat, data = data)
+  fit.j <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
+  fit.k <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
+  pc <- predict_counterfactual(fit.j = fit.j, fit.k = fit.k, treatment = treatment,
+                               treatments_for_compare = treatments_for_compare,
+                               prob_mat = prob_mat, data = data,stabilize = stabilize)
 
   # has_interaction <- h_interaction(formula, treatment)
 
 
   if (identical(contrast, "difference")) {
-    difference(pc)
+    difference(pc, alpha = alpha)
   } else if (identical(contrast, "risk_ratio")) {
-    risk_ratio(pc)
+    risk_ratio(pc, alpha = alpha)
   } else if (identical(contrast, "odds_ratio")) {
-    odds_ratio(pc)
+    odds_ratio(pc, alpha = alpha)
   } else {
     assert_function(contrast)
     assert_function(contrast_jac, null.ok = TRUE)
@@ -79,7 +91,7 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
         numDeriv::jacobian(contrast, x)
       }
     }
-    treatment_effect(pc, eff_measure = contrast, eff_jacobian = contrast_jac)
+    treatment_effect(pc, eff_measure = contrast, eff_jacobian = contrast_jac, alpha = alpha)
   }
 
 }

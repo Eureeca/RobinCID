@@ -16,4 +16,9 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
-    checkmate
+    checkmate,
+    numDeriv,
+    stats
+Depends: 
+    R (>= 2.10)
+LazyData: true
