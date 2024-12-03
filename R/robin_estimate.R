@@ -12,6 +12,7 @@
 #' @param family (`family`) A family object of the glm model.
 #' @param stabilize (`logical`) Whether to stabilize
 #' @param alpha (`double`) Nominal level
+#' @param method Estimation method. Either "wt" or "ps".
 #' @param ... Additional arguments passed to `glm`
 #'
 #' @export
@@ -28,8 +29,8 @@
 #'   family=gaussian(),
 #'   stabilize=TRUE,
 #'   alpha=0.05)
-robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
-                     contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=T, alpha=0.05, ...){
+robin_estimate <- function(formula, data, treatment, prob_mat, treatments_for_compare,
+                     contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05,method=NULL,...){
 
   # Example: robin_wt(formula=y ~ treatment * x, data = dummy_data, treatment = treatment, prob_mat,
   # treatments_for_compare=, contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=T)
@@ -72,7 +73,7 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
   fit.k <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
   pc <- predict_counterfactual(fit.j = fit.j, fit.k = fit.k, treatment = treatment,
                                treatments_for_compare = treatments_for_compare,
-                               prob_mat = prob_mat, data = data,stabilize = stabilize, method = "wt")
+                               prob_mat = prob_mat, data = data,stabilize = stabilize, method = method)
 
   # has_interaction <- h_interaction(formula, treatment)
 
@@ -93,5 +94,52 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
     }
     treatment_effect(pc, eff_measure = contrast, eff_jacobian = contrast_jac, alpha = alpha)
   }
+}
 
+#' Inverse Probability Weighting Based Inference
+#'
+#' A wrapper function for `robin_estimate` with the method set to "wt".
+#'
+#' @inheritParams robin_estimate
+#' @return See `robin_estimate` for details.
+#' @export
+#' @examples
+#' robin_wt(
+#'   formula = y ~ xb + xc,
+#'   data = example,
+#'   treatment = "treatment",
+#'   prob_mat = prob_mat,
+#'   treatments_for_compare = c("1", "2"),
+#'   contrast = "difference",
+#'   contrast_jac = NULL,
+#'   family = gaussian(),
+#'   stabilize = TRUE,
+#'   alpha = 0.05
+#' )
+robin_wt <- function(...) {
+  robin_estimate(method = "wt", ...)
+}
+
+#' Post-Stratification Based Inference
+#'
+#' A wrapper function for `robin_estimate` with the method set to "ps".
+#'
+#' @inheritParams robin_estimate
+#' @return See `robin_estimate` for details.
+#' @export
+#' @examples
+#' robin_ps(
+#'   formula = y ~ xb + xc,
+#'   data = example,
+#'   treatment = "treatment",
+#'   prob_mat = prob_mat,
+#'   treatments_for_compare = c("1", "2"),
+#'   contrast = "difference",
+#'   contrast_jac = NULL,
+#'   family = gaussian(),
+#'   stabilize = TRUE,
+#'   alpha = 0.05
+#' )
+robin_ps <- function(...) {
+  robin_estimate(method = "ps", ...)
 }
