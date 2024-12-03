@@ -16,7 +16,7 @@ risk_ratio(object, ...)
 odds_ratio(object, ...)
 }
 \arguments{
-\item{object}{Object from which to obtain treatment effect.}
+\item{object}{Object from which to obtain treatment effect. Must be obtained from \code{estimate_effect()}.}
 
 \item{pair}{(\code{integer} or \code{character}) Names or index of the treatment levels.}
 

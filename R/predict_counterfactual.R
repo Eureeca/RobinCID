@@ -8,17 +8,18 @@
 #' @param data (`data.frame`) raw dataset.
 #' @param prob_mat (`data.frame`) treatment assignment probabilities
 #' @param stabilize stabilize
+#' @param method estimation method
 #'
 #' @return Numeric matrix of counter factual prediction.
 #'
 #' @export
-predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, data,stabilize) {
+predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, data,stabilize, method) {
   UseMethod("predict_counterfactual", fit.j)
 }
 
 #' @export
 predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_compare,
-                                      prob_mat, data = merge(find_data(fit.j),find_data(fit.k)),stabilize) {
+                                      prob_mat, data = merge(find_data(fit.j),find_data(fit.k)),stabilize, method) {
   checkmate::assert_data_frame(data)
   checkmate::assert_subset(treatment, colnames(data))
   formula <- formula(fit.j)
@@ -45,7 +46,8 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
   ret <- matrix(c(preds.j, preds.k), ncol = n_lvls, dimnames = list(row.names(data), trt_lvls))
   y <- data[[all.vars(fit.j$formula)[1]]]
 
-  estimation <- estimation_wt(ret, y, treatment, treatments_for_compare, data, prob_mat, stabilize=stabilize)
+  class(ret) <- method
+  estimation <- estimate_effect(ret, y, treatment, treatments_for_compare, data, prob_mat, stabilize=stabilize)
 
   structure(
     .Data = estimation,
@@ -64,7 +66,7 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
 
 #' @export
 predict_counterfactual.glm <- function(fit.j,fit.k, treatment, treatments_for_compare,
-                                       prob_mat, data = merge(find_data(fit.j),find_data(fit.k)),stabilize, ...) {
+                                       prob_mat, data = merge(find_data(fit.j),find_data(fit.k)),stabilize,method) {
   predict_counterfactual.lm(fit.j = fit.j,fit.k=fit.k, treatment = treatment,
-                            treatments_for_compare = treatments_for_compare,prob_mat, data = data,stabilize,...)
+                            treatments_for_compare = treatments_for_compare,prob_mat, data = data,stabilize,method)
 }

@@ -11,7 +11,8 @@ predict_counterfactual(
   treatments_for_compare,
   prob_mat,
   data,
-  stabilize
+  stabilize,
+  method
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ predict_counterfactual(
 \item{data}{(\code{data.frame}) raw dataset.}
 
 \item{stabilize}{stabilize}
+
+\item{method}{estimation method}
 }
 \value{
 Numeric matrix of counter factual prediction.

@@ -8,5 +8,5 @@
 #' @import checkmate
 #' @importFrom numDeriv jacobian
 #' @importFrom stats predict residuals fitted model.response model.matrix coefficients family
-#' gaussian terms glm var family pnorm as.formula cov qnorm
+#' gaussian terms glm var family pnorm as.formula cov qnorm weighted.mean
 NULL

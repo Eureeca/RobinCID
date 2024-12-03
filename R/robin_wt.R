@@ -72,7 +72,7 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
   fit.k <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
   pc <- predict_counterfactual(fit.j = fit.j, fit.k = fit.k, treatment = treatment,
                                treatments_for_compare = treatments_for_compare,
-                               prob_mat = prob_mat, data = data,stabilize = stabilize)
+                               prob_mat = prob_mat, data = data,stabilize = stabilize, method = "wt")
 
   # has_interaction <- h_interaction(formula, treatment)
 

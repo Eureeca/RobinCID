@@ -1,7 +1,7 @@
 #' Treatment Effect
 #' @description Obtain treatment effect and variance from counter-factual prediction
 #'
-#' @param object Object from which to obtain treatment effect.
+#' @param object Object from which to obtain treatment effect. Must be obtained from `estimate_effect()`.
 #' @param pair (`integer` or `character`) Names or index of the treatment levels.
 #' @param eff_measure (`function`) Treatment effect measurement function.
 #' @param eff_jacobian (`function`) Treatment effect jacobian function.
@@ -9,13 +9,13 @@
 #' @param ... Additional arguments passed to `glm`
 #'
 #' @export
-treatment_effect <- function(object, pair, eff_measure, eff_jacobian,alpha, ...) {
+treatment_effect <- function(object, pair, eff_measure, eff_jacobian, alpha, ...) {
   UseMethod("treatment_effect", object)
 }
 
 #' @export
 treatment_effect.prediction_cf <- function(
-    object, pair = names(object), eff_measure, eff_jacobian,alpha, ...) {
+    object, pair = names(object), eff_measure, eff_jacobian, alpha, ...) {
 
   checkmate::assert_function(eff_measure)
   contrast_name = deparse(substitute(eff_measure))
@@ -61,22 +61,6 @@ treatment_effect.prediction_cf <- function(
     contrast = contrast,
     class = "treatment_effect"
   )
-}
-
-
-#' @export
-#' @inheritParams predict_counterfactual
-treatment_effect.lm <- function(
-    object, pair, eff_measure, eff_jacobian, treatment, data = find_data(object),alpha, ...) {
-  pc <- predict_counterfactual(object, data = data, treatment)
-  treatment_effect(pc, pair = pair, eff_measure = eff_measure, eff_jacobian = eff_jacobian, alpha=alpha,...)
-}
-
-#' @export
-treatment_effect.glm <- function(
-    object, pair, eff_measure, eff_jacobian, treatment, data = find_data(object),alpha, ...) {
-  pc <- predict_counterfactual(object, treatment, data)
-  treatment_effect(pc, pair = pair, eff_measure = eff_measure, eff_jacobian = eff_jacobian,alpha=alpha, ...)
 }
 
 #' @rdname treatment_effect
