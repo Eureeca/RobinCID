@@ -2,13 +2,14 @@
 % Please edit documentation in R/robin_estimate.R
 \name{robin_estimate}
 \alias{robin_estimate}
-\title{Inverse probability weighting based model}
+\title{Robust inference method}
 \usage{
 robin_estimate(
   formula,
   data,
   treatment,
-  prob_mat,
+  prob_mat = NULL,
+  stratification = NULL,
   treatments_for_compare,
   contrast = "difference",
   contrast_jac = NULL,
@@ -24,41 +25,33 @@ robin_estimate(
 
 \item{data}{(\code{data.frame}) Input data frame.}
 
-\item{treatment}{(\code{character(1)}) A string name of treatment assignment.}
+\item{treatment}{(\code{character}) A string name of treatment assignment.}
 
 \item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix}
 
+\item{stratification}{(\code{character}) A string name of stratification. Default: \code{NULL}}
+
 \item{treatments_for_compare}{(\code{vector}) Treatments for comparison}
 
-\item{contrast}{(\code{function} or \code{character(1)}) A function to calculate the treatment effect, or character of
+\item{contrast}{(\code{function} or \code{character}) A function to calculate the treatment effect, or character of
 "difference", "risk_ratio", "odds_ratio" for default contrasts.}
 
 \item{contrast_jac}{(\code{function}) A function to calculate the Jacobian of the contrast function. Ignored if using
 default contrasts.}
 
-\item{family}{(\code{family}) A family object of the glm model.}
+\item{family}{(\code{family}) A family object of the glm model. Default: \code{gaussian()}.}
 
-\item{stabilize}{(\code{logical}) Whether to stabilize}
+\item{stabilize}{(\code{logical}) Whether to stabilize. Default: TRUE.}
 
-\item{alpha}{(\code{double}) Nominal level}
+\item{alpha}{(\code{double}) Nominal level. Default: 0.05.}
 
 \item{method}{Estimation method. Either "wt" or "ps".}
 
 \item{...}{Additional arguments passed to \code{glm}}
 }
 \description{
-Inverse probability weighting based model
+Provides robust inference methods via either inverse probability weighting or post stratification
 }
-\examples{
-robin_wt(
-  formula = y ~ xb + xc,
-  data = example,
-  treatment = "treatment",
-  prob_mat = prob_mat,
-  treatments_for_compare = c("1","2"),
-  contrast = "difference",
-  contrast_jac=NULL,
-  family=gaussian(),
-  stabilize=TRUE,
-  alpha=0.05)
+\details{
+If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MASS::glm.nb} instead of \code{glm}.
 }

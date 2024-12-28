@@ -7,19 +7,20 @@
 #' @param treatments_for_compare (`character`) Treatments for comparison
 #' @param data (`data.frame`) raw dataset.
 #' @param prob_mat (`data.frame`) treatment assignment probabilities
+#' @param stratification (`character`) A string name of stratification.
 #' @param stabilize stabilize
 #' @param method estimation method
 #'
 #' @return Numeric matrix of counter factual prediction.
 #'
 #' @export
-predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, data,stabilize, method) {
+predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, stratification, data,stabilize, method) {
   UseMethod("predict_counterfactual", fit.j)
 }
 
 #' @export
 predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_compare,
-                                      prob_mat, data = merge(find_data(fit.j),find_data(fit.k)),stabilize, method) {
+                                      prob_mat, stratification, data = merge(find_data(fit.j),find_data(fit.k)),stabilize, method) {
   checkmate::assert_data_frame(data)
   checkmate::assert_subset(treatment, colnames(data))
   formula <- formula(fit.j)
@@ -30,6 +31,7 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
     checkmate::test_character(data[[treatment]]),
     checkmate::test_factor(data[[treatment]])
   )
+
 
   ECE_size = nrow(data)
 
@@ -47,7 +49,7 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
   y <- data[[all.vars(fit.j$formula)[1]]]
 
   class(ret) <- method
-  estimation <- estimate_effect(ret, y, treatment, treatments_for_compare, data, prob_mat, stabilize=stabilize)
+  estimation <- estimate_effect(ret, y, treatment, treatments_for_compare, data, prob_mat, stratification, stabilize=stabilize)
 
   structure(
     .Data = estimation,
@@ -58,6 +60,7 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
     fit.j = fit.j,
     fit.k = fit.k,
     prob_mat = prob_mat[treatments_for_compare],
+    stratification = stratification,
     treatment_name = treatment,
     treatment = data[[treatment]],
     class = "prediction_cf"
@@ -66,7 +69,7 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
 
 #' @export
 predict_counterfactual.glm <- function(fit.j,fit.k, treatment, treatments_for_compare,
-                                       prob_mat, data = merge(find_data(fit.j),find_data(fit.k)),stabilize,method) {
+                                       prob_mat, stratification, data = merge(find_data(fit.j),find_data(fit.k)),stabilize,method) {
   predict_counterfactual.lm(fit.j = fit.j,fit.k=fit.k, treatment = treatment,
-                            treatments_for_compare = treatments_for_compare,prob_mat, data = data,stabilize,method)
+                            treatments_for_compare = treatments_for_compare,prob_mat, stratification = stratification,  data = data,stabilize,method)
 }

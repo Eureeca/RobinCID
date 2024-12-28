@@ -10,6 +10,7 @@ predict_counterfactual(
   treatment,
   treatments_for_compare,
   prob_mat,
+  stratification,
   data,
   stabilize,
   method
@@ -25,6 +26,8 @@ predict_counterfactual(
 \item{treatments_for_compare}{(\code{character}) Treatments for comparison}
 
 \item{prob_mat}{(\code{data.frame}) treatment assignment probabilities}
+
+\item{stratification}{(\code{character}) A string name of stratification.}
 
 \item{data}{(\code{data.frame}) raw dataset.}
 

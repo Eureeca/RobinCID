@@ -4,17 +4,18 @@
 #' @param treatments_for_compare description
 #' @param data (`data.frame`) data
 #' @param prob_mat (`data.frame`) treatment assignment probability
+#' @param stratification (`character`) name of stratification variable
 #' @param stabilize (`logical`) whether to stabilize
 #' @param y Observed outcome
 #' @param treatment name of treatment
 #'
 #' @export
-estimate_effect <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stabilize = TRUE) {
+estimate_effect <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stratification, stabilize) {
   UseMethod("estimate_effect", ret)
 }
 
 #' @export
-estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stabilize=TRUE){
+estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stratification, stabilize){
 
   pij <- prob_mat[[treatments_for_compare[1]]]
   pik <- prob_mat[[treatments_for_compare[2]]]
@@ -58,13 +59,13 @@ estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, 
   estimate = c(theta.jk, theta.kj)
   names(estimate) = treatments_for_compare
 
-  list(estimate = estimate, inner_variance = inner_variance)
+  list(estimate = estimate, inner_variance = inner_variance,
+       method="Inverse Probability Weighting")
 }
 
 #' @export
-estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stabilize = TRUE) {
-  pij <- prob_mat[[treatments_for_compare[1]]]
-  pik <- prob_mat[[treatments_for_compare[2]]]
+estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stratification, stabilize) {
+
 
   njk <- nrow(data)
 
@@ -74,16 +75,28 @@ estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, 
   pred.jk <- ret[, 1]
   pred.kj <- ret[, 2]
 
+  pij <- prob_mat[[treatments_for_compare[1]]]
+  pik <- prob_mat[[treatments_for_compare[2]]]
+
   temp_df <- data.frame(pij = pij, pik = pik, A.j = A.j, A.k = A.k, pred.j = pred.jk, pred.k = pred.kj, y = y)
 
-  unique_pairs <- unique(temp_df[, c("pij", "pik")])
-  n_pairs <- nrow(unique_pairs)
+  if(is.null(stratification)){
 
+
+    unique_pairs <- unique(temp_df[, c("pij", "pik")])
+    n_pairs <- nrow(unique_pairs)
+    strata <- 1:n_pairs
+    temp_df$stratification <- match(interaction(temp_df$pij, temp_df$pik), interaction(unique_pairs$pij, unique_pairs$pik))
+  } else {
+    n_pairs <- length(unique(data[[stratification]]))
+    temp_df$stratification <- data[[stratification]]
+    strata <- unique(data[[stratification]])
+  }
   # Initialize results
   thetas.j <- thetas.k <- sigma11 <- sigma22 <- sigma12 <- Y.bar.j <- Y.bar.k <- ns <- numeric(n_pairs)
 
   for (i in seq_len(n_pairs)) {
-    pair_data <- temp_df[pij == unique_pairs$pij[i] & pik == unique_pairs$pik[i], ]
+    pair_data <- temp_df[temp_df$stratification==strata[i], ]
 
     n.jk <- nrow(pair_data)
 
@@ -95,6 +108,8 @@ estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, 
 
     pij.hat <- mean(pair_data$A.j)
     pik.hat <- mean(pair_data$A.k)
+    # pij.hat <- pair_data$pij[1]
+    # pik.hat <- pair_data$pik[1]
 
     sigma.jk <- var(pair_data$pred.j)
     sigma.kj <- var(pair_data$pred.k)
@@ -139,7 +154,8 @@ estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, 
   inner_variance <- Sigma.jk / sum(ns)
   estimate <- c(theta.jk, theta.kj)
   names(estimate) <- treatments_for_compare
-  list(estimate = estimate, inner_variance = inner_variance)
+  list(estimate = estimate, inner_variance = inner_variance,
+       method = "Post Stratification")
 }
 
 

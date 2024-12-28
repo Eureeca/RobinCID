@@ -11,7 +11,8 @@ estimate_effect(
   treatments_for_compare,
   data,
   prob_mat,
-  stabilize = TRUE
+  stratification,
+  stabilize
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ estimate_effect(
 \item{data}{(\code{data.frame}) data}
 
 \item{prob_mat}{(\code{data.frame}) treatment assignment probability}
+
+\item{stratification}{(\code{character}) name of stratification variable}
 
 \item{stabilize}{(\code{logical}) whether to stabilize}
 }

@@ -51,7 +51,7 @@ treatment_effect.prediction_cf <- function(
     mm_name = pair,
     name = pair_names[lower.tri(pair_names)],
     marginal_mean = object$estimate,
-    fit = attr(object, "fit.j"),
+    fit.j = attr(object, "fit.j"),
     mmvariance = object$inner_variance,
     treatment = attr(object, "treatment_name"),
     variance = diag(trt_var),
@@ -59,7 +59,9 @@ treatment_effect.prediction_cf <- function(
     sample_size = attr(object, "sample_size"),
     alpha = alpha,
     contrast = contrast,
-    class = "treatment_effect"
+    class = "treatment_effect",
+    stratification = object$stratification,
+    method = object$method
   )
 }
 
@@ -154,16 +156,20 @@ h_lower_tri_idx <- function(n) {
 #' @export
 print.treatment_effect <- function(x, ...) {
   alpha <- attr(x,"alpha")
-  prob_mat <- attr(x, "prob_mat")
+  data <- find_data(attr(x, "fit.j"))
+  stratification <- attr(x, "stratification")
+  prob_mat <- round(attr(x, "prob_mat"),3)
   row_counts <- apply(prob_mat, 1, function(row) paste(row, collapse = ", "))
   unique_counts <- table(row_counts)
   proportions <- round(unique_counts / nrow(prob_mat),2)
 
+  cat("Method: ", attr(x, "method"), "\n")
   cat("Model : ", deparse(as.formula(attr(x, "fit"))), "\n")
   cat("Family: ", attr(x, "fit")$family[[1]], "\n")
 
   cat("Randomization Probabilities (among the entire concurrent and eligible (ECE) samples):", "\n")
   cat("  Total Sample Size: ",attr(x,"sample_size"),"\n")
+  if(is.null(stratification)){
   prob_tab <- matrix(
     c(names(proportions),
       unique_counts,
@@ -171,6 +177,16 @@ print.treatment_effect <- function(x, ...) {
     nrow = length(names(proportions))
   )
   colnames(prob_tab) <- c("Unique.Level", "Sample.Size","Proportion")
+  } else {
+    prob_tab <- matrix(
+      c(unique(data[[stratification]]),
+        names(proportions),
+        unique_counts,
+        proportions),
+      nrow = length(names(proportions))
+    )
+    colnames(prob_tab) <- c("Stratum", "Unique.Level", "Sample.Size","Proportion")
+  }
   row.names(prob_tab) <- 1:nrow(prob_tab)
   print(prob_tab)
   cat("\n")

@@ -4,16 +4,49 @@
 \alias{robin_ps}
 \title{Post-Stratification Based Inference}
 \usage{
-robin_ps(...)
+robin_ps(
+  formula,
+  data,
+  treatment,
+  prob_mat = NULL,
+  stratification = NULL,
+  treatments_for_compare,
+  contrast = "difference",
+  contrast_jac = NULL,
+  family = gaussian(),
+  alpha = 0.05,
+  ...
+)
 }
 \arguments{
+\item{formula}{(\code{formula}) A formula of analysis.}
+
+\item{data}{(\code{data.frame}) Input data frame.}
+
+\item{treatment}{(\code{character}) A string name of treatment assignment.}
+
+\item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix}
+
+\item{stratification}{(\code{character}) A string name of stratification. Default: \code{NULL}}
+
+\item{treatments_for_compare}{(\code{vector}) Treatments for comparison}
+
+\item{contrast}{(\code{function} or \code{character}) A function to calculate the treatment effect, or character of
+"difference", "risk_ratio", "odds_ratio" for default contrasts.}
+
+\item{contrast_jac}{(\code{function}) A function to calculate the Jacobian of the contrast function. Ignored if using
+default contrasts.}
+
+\item{family}{(\code{family}) A family object of the glm model. Default: \code{gaussian()}.}
+
+\item{alpha}{(\code{double}) Nominal level. Default: 0.05.}
+
 \item{...}{Additional arguments passed to \code{glm}}
 }
-\value{
-See \code{robin_estimate} for details.
-}
 \description{
-A wrapper function for \code{robin_estimate} with the method set to "ps".
+Provides robust inference methods via post stratification.
+Add stratification variable (only one column), check constant probs in each stratum, error (warning if prob_mat not given
+error/warning
 }
 \examples{
 robin_ps(
@@ -21,11 +54,11 @@ robin_ps(
   data = example,
   treatment = "treatment",
   prob_mat = prob_mat,
+  stratification = NULL,
   treatments_for_compare = c("1", "2"),
   contrast = "difference",
   contrast_jac = NULL,
   family = gaussian(),
-  stabilize = TRUE,
   alpha = 0.05
 )
 }

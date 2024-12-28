@@ -4,16 +4,50 @@
 \alias{robin_wt}
 \title{Inverse Probability Weighting Based Inference}
 \usage{
-robin_wt(...)
+robin_wt(
+  formula,
+  data,
+  treatment,
+  prob_mat,
+  stratification = NULL,
+  treatments_for_compare,
+  contrast = "difference",
+  contrast_jac = NULL,
+  family = gaussian(),
+  stabilize = TRUE,
+  alpha = 0.05,
+  ...
+)
 }
 \arguments{
+\item{formula}{(\code{formula}) A formula of analysis.}
+
+\item{data}{(\code{data.frame}) Input data frame.}
+
+\item{treatment}{(\code{character}) A string name of treatment assignment.}
+
+\item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix}
+
+\item{stratification}{(\code{character}) A string name of stratification. Default: \code{NULL}}
+
+\item{treatments_for_compare}{(\code{vector}) Treatments for comparison}
+
+\item{contrast}{(\code{function} or \code{character}) A function to calculate the treatment effect, or character of
+"difference", "risk_ratio", "odds_ratio" for default contrasts.}
+
+\item{contrast_jac}{(\code{function}) A function to calculate the Jacobian of the contrast function. Ignored if using
+default contrasts.}
+
+\item{family}{(\code{family}) A family object of the glm model. Default: \code{gaussian()}.}
+
+\item{stabilize}{(\code{logical}) Whether to stabilize. Default: TRUE.}
+
+\item{alpha}{(\code{double}) Nominal level. Default: 0.05.}
+
 \item{...}{Additional arguments passed to \code{glm}}
 }
-\value{
-See \code{robin_estimate} for details.
-}
 \description{
-A wrapper function for \code{robin_estimate} with the method set to "wt".
+Provides robust inference methods via inverse probability weighting.
 }
 \examples{
 robin_wt(

@@ -1,5 +1,5 @@
 #' Find Data in a Fit
-#' @export
+#'
 #' @param fit A fit object.
 #' @param ... Additional arguments.
 find_data <- function(fit, ...) {
