@@ -1,13 +1,13 @@
 #' Robust inference method
 #' @description
-#' Provides robust inference methods via either inverse probability weighting or post stratification
+#' Provides robust inference methods via either weighting or post stratification.
 #'
 #'
 #' @param formula (`formula`) A formula of analysis.
 #' @param data (`data.frame`) Input data frame.
 #' @param treatment (`character`) A string name of treatment assignment.
 #' @param prob_mat (`data.frame`) Treatment assignment probability matrix
-#' @param stratification (`character`) A string name of stratification. Default: `NULL`
+#' @param stratification (`character`) A string name of stratification variable. Default: `NULL`
 #' @param treatments_for_compare (`vector`) Treatments for comparison
 #' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
 #' "difference", "risk_ratio", "odds_ratio" for default contrasts.
@@ -104,8 +104,6 @@ robin_wt <- function(formula, data, treatment, prob_mat, stratification = NULL, 
 #' Post-Stratification Based Inference
 #'
 #' Provides robust inference methods via post stratification.
-#' Add stratification variable (only one column), check constant probs in each stratum, error (warning if prob_mat not given
-#' error/warning
 #'
 #' @inheritParams robin_estimate
 #' @export
@@ -126,7 +124,8 @@ robin_ps <- function(formula, data, treatment, prob_mat = NULL, stratification =
                      contrast = "difference", contrast_jac = NULL, family = gaussian(), alpha = 0.05,...) {
 
   status <- prob_strata_check(data, treatment, prob_mat, stratification, treatments_for_compare)
-  if(status) prob_mat <- prob_mat_generate(data, treatment, stratification)
+  if(identical(status, "missing prob_mat")) prob_mat <- prob_mat_generate(data, treatment, stratification)
+  if(identical(status, "varying prob_mat")) stratification <- NULL
   robin_estimate(formula, data, treatment, prob_mat, stratification, treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, family=family,
                  alpha=alpha, method = "ps", ...)

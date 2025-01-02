@@ -27,7 +27,7 @@ robin_ps(
 
 \item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix}
 
-\item{stratification}{(\code{character}) A string name of stratification. Default: \code{NULL}}
+\item{stratification}{(\code{character}) A string name of stratification variable. Default: \code{NULL}}
 
 \item{treatments_for_compare}{(\code{vector}) Treatments for comparison}
 
@@ -45,8 +45,6 @@ default contrasts.}
 }
 \description{
 Provides robust inference methods via post stratification.
-Add stratification variable (only one column), check constant probs in each stratum, error (warning if prob_mat not given
-error/warning
 }
 \examples{
 robin_ps(

@@ -69,7 +69,7 @@
       stratification = "s12.2", treatments_for_compare = c("1", "2"), contrast = "difference")
     Condition
       Warning in `prob_strata_check()`:
-      Prob is not provided. The result is not guaranteed to be valid.
+      Probability matrix is not provided. The method assumes treatment assignment probabilities are constant within each level of stratification.
     Output
       Method:  Post Stratification 
       Model :  y ~ xb + xc 

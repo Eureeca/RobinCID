@@ -1,9 +1,9 @@
 prob_strata_check <- function(data, treatment, prob_mat, stratification, treatments_for_compare) {
-  status <- 0
+  status <- "normal"
   if (is.null(prob_mat) & is.null(stratification)) stop("Either assignment probabilities or strata MUST be provided.")
   if (is.null(prob_mat) & !is.null(stratification)) {
-    status <- 1
-    warning("Prob is not provided. The result is not guaranteed to be valid.")
+    status <- "missing prob_mat"
+    warning("Probability matrix is not provided. The method assumes treatment assignment probabilities are constant within each level of stratification.")
   }
 
   assert_subset(treatment, names(data))
@@ -23,8 +23,10 @@ prob_strata_check <- function(data, treatment, prob_mat, stratification, treatme
       unique_pairs <- unique(paste(subset_df$pij, subset_df$pik))
 
       if (length(unique_pairs) > 1) {
-        warning("Unconstant (pij, pik) pairs found in stratum: ", stratum, ". Stratification will be ignored.")
-        status <- 1
+        warning("Assignment probabilities vary within stratification levels;
+                ignoring provided stratification and using unique probability levels for stratification instead.")
+        status <- "varying prob_mat"
+        return(status)
       }
     }
     return(status)

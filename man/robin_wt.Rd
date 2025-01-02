@@ -28,7 +28,7 @@ robin_wt(
 
 \item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix}
 
-\item{stratification}{(\code{character}) A string name of stratification. Default: \code{NULL}}
+\item{stratification}{(\code{character}) A string name of stratification variable. Default: \code{NULL}}
 
 \item{treatments_for_compare}{(\code{vector}) Treatments for comparison}
 

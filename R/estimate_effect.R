@@ -9,7 +9,6 @@
 #' @param y Observed outcome
 #' @param treatment name of treatment
 #'
-#' @export
 estimate_effect <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stratification, stabilize) {
   UseMethod("estimate_effect", ret)
 }
@@ -81,8 +80,6 @@ estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, 
   temp_df <- data.frame(pij = pij, pik = pik, A.j = A.j, A.k = A.k, pred.j = pred.jk, pred.k = pred.kj, y = y)
 
   if(is.null(stratification)){
-
-
     unique_pairs <- unique(temp_df[, c("pij", "pik")])
     n_pairs <- nrow(unique_pairs)
     strata <- 1:n_pairs
@@ -92,7 +89,6 @@ estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, 
     temp_df$stratification <- data[[stratification]]
     strata <- unique(data[[stratification]])
   }
-  # Initialize results
   thetas.j <- thetas.k <- sigma11 <- sigma22 <- sigma12 <- Y.bar.j <- Y.bar.k <- ns <- numeric(n_pairs)
 
   for (i in seq_len(n_pairs)) {
@@ -108,8 +104,6 @@ estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, 
 
     pij.hat <- mean(pair_data$A.j)
     pik.hat <- mean(pair_data$A.k)
-    # pij.hat <- pair_data$pij[1]
-    # pik.hat <- pair_data$pik[1]
 
     sigma.jk <- var(pair_data$pred.j)
     sigma.kj <- var(pair_data$pred.k)
