@@ -16,7 +16,7 @@
 #' @param ... Additional arguments passed to `glm`
 #' @details
 #' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
-robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratification = NULL, treatments_for_compare,
+robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratification = NULL, treatments_for_compare=NULL,
                      contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05, method=NULL,...){
 
   assert_subset(all.vars(formula), names(data))
@@ -93,7 +93,7 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
   if(is.null(prob_mat)) stop("Assignment probabilities MUST be provided.")
   assert_subset(treatments_for_compare, names(prob_mat))
   robin_estimate(formula = formula, data = data, treatment = treatment,
-                 prob_mat = prob_mat,, treatments_for_compare,
+                 prob_mat = prob_mat,, treatments_for_compare = treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, stabilize = stabilize,
                  alpha = alpha, method = "wt", stratification = NULL, ...)
 }
@@ -123,7 +123,8 @@ robin_ps <- function(formula, data, treatment, prob_mat = NULL, stratification =
   status <- prob_strata_check(data, treatment, prob_mat, stratification, treatments_for_compare)
   if(identical(status, "missing prob_mat")) prob_mat <- prob_mat_generate(data, treatment, stratification)
   if(identical(status, "varying prob_mat")) stratification <- NULL
-  robin_estimate(formula, data, treatment, prob_mat, stratification, treatments_for_compare,
+  robin_estimate(formula = formula, data = data, treatment = treatment,
+                 prob_mat = prob_mat, stratification = stratification, treatments_for_compare = treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, family=family,
                  alpha=alpha, method = "ps", ...)
 }

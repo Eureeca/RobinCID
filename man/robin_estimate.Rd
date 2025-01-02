@@ -10,7 +10,7 @@ robin_estimate(
   treatment,
   prob_mat = NULL,
   stratification = NULL,
-  treatments_for_compare,
+  treatments_for_compare = NULL,
   contrast = "difference",
   contrast_jac = NULL,
   family = gaussian(),
@@ -50,9 +50,8 @@ default contrasts.}
 \item{...}{Additional arguments passed to \code{glm}}
 }
 \description{
-Provides robust inference methods via either weighting or post stratification.
+Robust inference method
 }
 \details{
 If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MASS::glm.nb} instead of \code{glm}.
 }
-\keyword{internal}
