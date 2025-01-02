@@ -1,8 +1,4 @@
 #' Robust inference method
-#' @description
-#' Provides robust inference methods via either weighting or post stratification.
-#'
-#'
 #' @param formula (`formula`) A formula of analysis.
 #' @param data (`data.frame`) Input data frame.
 #' @param treatment (`character`) A string name of treatment assignment.
@@ -92,13 +88,14 @@ robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratifica
 #'   stabilize = TRUE,
 #'   alpha = 0.05
 #' )
-robin_wt <- function(formula, data, treatment, prob_mat, stratification = NULL, treatments_for_compare,
+robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
                      contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05,...) {
   if(is.null(prob_mat)) stop("Assignment probabilities MUST be provided.")
   assert_subset(treatments_for_compare, names(prob_mat))
-  robin_estimate(formula, data, treatment, prob_mat, stratification, treatments_for_compare,
+  robin_estimate(formula = formula, data = data, treatment = treatment,
+                 prob_mat = prob_mat,, treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, stabilize = stabilize,
-                 alpha = alpha, method = "wt", ...)
+                 alpha = alpha, method = "wt", stratification = NULL, ...)
 }
 
 #' Post-Stratification Based Inference

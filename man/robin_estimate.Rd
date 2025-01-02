@@ -55,3 +55,4 @@ Provides robust inference methods via either weighting or post stratification.
 \details{
 If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MASS::glm.nb} instead of \code{glm}.
 }
+\keyword{internal}

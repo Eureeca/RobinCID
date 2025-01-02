@@ -9,7 +9,6 @@ robin_wt(
   data,
   treatment,
   prob_mat,
-  stratification = NULL,
   treatments_for_compare,
   contrast = "difference",
   contrast_jac = NULL,
@@ -27,8 +26,6 @@ robin_wt(
 \item{treatment}{(\code{character}) A string name of treatment assignment.}
 
 \item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix}
-
-\item{stratification}{(\code{character}) A string name of stratification variable. Default: \code{NULL}}
 
 \item{treatments_for_compare}{(\code{vector}) Treatments for comparison}
 
