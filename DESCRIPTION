@@ -3,7 +3,7 @@ Title: What the Package Does (One Line, Title Case)
 Version: 0.0.1.0
 Authors@R: 
     person("Yuhan", "Qian", , "yhqian@uw.edu", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: RobinCID is a package to provide robust inference of analysis under complex innovative trial design.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
