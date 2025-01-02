@@ -1,21 +1,5 @@
 #' Robust inference method
-#' @param formula (`formula`) A formula of analysis.
-#' @param data (`data.frame`) Input data frame.
-#' @param treatment (`character`) A string name of treatment assignment.
-#' @param prob_mat (`data.frame`) Treatment assignment probability matrix
-#' @param stratification (`character`) A string name of stratification variable. Default: `NULL`
-#' @param treatments_for_compare (`vector`) Treatments for comparison
-#' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
-#' "difference", "risk_ratio", "odds_ratio" for default contrasts.
-#' @param contrast_jac (`function`) A function to calculate the Jacobian of the contrast function. Ignored if using
-#' default contrasts.
-#' @param family (`family`) A family object of the glm model. Default: `gaussian()`.
-#' @param stabilize (`logical`) Whether to stabilize. Default: TRUE.
-#' @param alpha (`double`) Nominal level. Default: 0.05.
-#' @param method Estimation method. Either "wt" or "ps".
-#' @param ... Additional arguments passed to `glm`
-#' @details
-#' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
+#' @noRd
 robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratification = NULL, treatments_for_compare=NULL,
                      contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05, method=NULL,...){
 
@@ -73,7 +57,21 @@ robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratifica
 #'
 #' Provides robust inference methods via inverse probability weighting.
 #'
-#' @inheritParams robin_estimate
+#' @param formula (`formula`) A formula of analysis.
+#' @param data (`data.frame`) Input data frame.
+#' @param treatment (`character`) A string name of treatment assignment.
+#' @param prob_mat (`data.frame`) Treatment assignment probability matrix.
+#' @param treatments_for_compare (`vector`) Treatments for comparison.
+#' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
+#' "difference", "risk_ratio", "odds_ratio" for default contrasts.
+#' @param contrast_jac (`function`) A function to calculate the Jacobian of the contrast function. Ignored if using
+#' default contrasts.
+#' @param family (`family`) A family object of the glm model. Default: `gaussian()`.
+#' @param stabilize (`logical`) Whether to stabilize. Default: TRUE.
+#' @param alpha (`double`) Nominal level. Default: 0.05.
+#' @param ... Additional arguments passed to `glm`.
+#' @details
+#' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export
 #' @examples
 #' robin_wt(
@@ -102,7 +100,22 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
 #'
 #' Provides robust inference methods via post stratification.
 #'
-#' @inheritParams robin_estimate
+#' @param formula (`formula`) A formula of analysis.
+#' @param data (`data.frame`) Input data frame.
+#' @param treatment (`character`) A string name of treatment assignment.
+#' @param prob_mat (`data.frame`) Treatment assignment probability matrix.
+#' @param stratification (`character`) A string name of stratification variable. Default: `NULL`
+#' @param treatments_for_compare (`vector`) Treatments for comparison.
+#' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
+#' "difference", "risk_ratio", "odds_ratio" for default contrasts.
+#' @param contrast_jac (`function`) A function to calculate the Jacobian of the contrast function. Ignored if using
+#' default contrasts.
+#' @param family (`family`) A family object of the glm model. Default: `gaussian()`.
+#' @param stabilize (`logical`) Whether to stabilize. Default: TRUE.
+#' @param alpha (`double`) Nominal level. Default: 0.05.
+#' @param ... Additional arguments passed to `glm`
+#' @details
+#' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export
 #' @examples
 #' robin_ps(
@@ -118,7 +131,7 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
 #'   alpha = 0.05
 #' )
 robin_ps <- function(formula, data, treatment, prob_mat = NULL, stratification = NULL, treatments_for_compare,
-                     contrast = "difference", contrast_jac = NULL, family = gaussian(), alpha = 0.05,...) {
+                     contrast = "difference", contrast_jac = NULL, family = gaussian(), alpha = 0.05, ...) {
 
   status <- prob_strata_check(data, treatment, prob_mat, stratification, treatments_for_compare)
   if(identical(status, "missing prob_mat")) prob_mat <- prob_mat_generate(data, treatment, stratification)

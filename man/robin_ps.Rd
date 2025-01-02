@@ -25,11 +25,11 @@ robin_ps(
 
 \item{treatment}{(\code{character}) A string name of treatment assignment.}
 
-\item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix}
+\item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix.}
 
 \item{stratification}{(\code{character}) A string name of stratification variable. Default: \code{NULL}}
 
-\item{treatments_for_compare}{(\code{vector}) Treatments for comparison}
+\item{treatments_for_compare}{(\code{vector}) Treatments for comparison.}
 
 \item{contrast}{(\code{function} or \code{character}) A function to calculate the treatment effect, or character of
 "difference", "risk_ratio", "odds_ratio" for default contrasts.}
@@ -42,9 +42,14 @@ default contrasts.}
 \item{alpha}{(\code{double}) Nominal level. Default: 0.05.}
 
 \item{...}{Additional arguments passed to \code{glm}}
+
+\item{stabilize}{(\code{logical}) Whether to stabilize. Default: TRUE.}
 }
 \description{
 Provides robust inference methods via post stratification.
+}
+\details{
+If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MASS::glm.nb} instead of \code{glm}.
 }
 \examples{
 robin_ps(

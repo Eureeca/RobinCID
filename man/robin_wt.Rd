@@ -25,9 +25,9 @@ robin_wt(
 
 \item{treatment}{(\code{character}) A string name of treatment assignment.}
 
-\item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix}
+\item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix.}
 
-\item{treatments_for_compare}{(\code{vector}) Treatments for comparison}
+\item{treatments_for_compare}{(\code{vector}) Treatments for comparison.}
 
 \item{contrast}{(\code{function} or \code{character}) A function to calculate the treatment effect, or character of
 "difference", "risk_ratio", "odds_ratio" for default contrasts.}
@@ -45,6 +45,9 @@ default contrasts.}
 }
 \description{
 Provides robust inference methods via inverse probability weighting.
+}
+\details{
+If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MASS::glm.nb} instead of \code{glm}.
 }
 \examples{
 robin_wt(

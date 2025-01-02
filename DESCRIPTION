@@ -1,5 +1,5 @@
 Package: RobinCID
-Title: What the Package Does (One Line, Title Case)
+Title: ROBust INference of analysis under Complex Innovative trial Design
 Version: 0.0.1.0
 Authors@R: 
     person("Yuhan", "Qian", , "yhqian@uw.edu", role = c("aut", "cre"))
