@@ -60,8 +60,11 @@ robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratifica
 #' @param formula (`formula`) A formula of analysis.
 #' @param data (`data.frame`) Input data frame.
 #' @param treatment (`character`) A string name of treatment assignment.
-#' @param prob_mat (`data.frame`) Treatment assignment probability matrix.
-#' @param treatments_for_compare (`vector`) Treatments for comparison.
+#' @param prob_mat (`data.frame`) A data frame containing the treatment assignment probabilities.
+#' Each row corresponds to an observation in the `data`.
+#' The column names must represent the treatment levels in the study and should include at least the treatments specified in the `treatments_for_compare`.
+#' @param treatments_for_compare (`vector`) A character vector specifying exactly two treatment levels to compare.
+#' The specified treatments must be present in both the `treatment` variable of the `data` and the column names of the `prob_mat`.
 #' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
 #' "difference", "risk_ratio", "odds_ratio" for default contrasts.
 #' @param contrast_jac (`function`) A function to calculate the Jacobian of the contrast function. Ignored if using
@@ -100,19 +103,8 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
 #'
 #' Provides robust inference methods via post stratification.
 #'
-#' @param formula (`formula`) A formula of analysis.
-#' @param data (`data.frame`) Input data frame.
-#' @param treatment (`character`) A string name of treatment assignment.
-#' @param prob_mat (`data.frame`) Treatment assignment probability matrix.
+#' @inheritParams robin_wt
 #' @param stratification (`character`) A string name of stratification variable. Default: `NULL`
-#' @param treatments_for_compare (`vector`) Treatments for comparison.
-#' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
-#' "difference", "risk_ratio", "odds_ratio" for default contrasts.
-#' @param contrast_jac (`function`) A function to calculate the Jacobian of the contrast function. Ignored if using
-#' default contrasts.
-#' @param family (`family`) A family object of the glm model. Default: `gaussian()`.
-#' @param alpha (`double`) Nominal level. Default: 0.05.
-#' @param ... Additional arguments passed to `glm`
 #' @details
 #' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export

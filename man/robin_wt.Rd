@@ -25,9 +25,12 @@ robin_wt(
 
 \item{treatment}{(\code{character}) A string name of treatment assignment.}
 
-\item{prob_mat}{(\code{data.frame}) Treatment assignment probability matrix.}
+\item{prob_mat}{(\code{data.frame}) A data frame containing the treatment assignment probabilities.
+Each row corresponds to an observation in the \code{data}.
+The column names must represent the treatment levels in the study and should include at least the treatments specified in the \code{treatments_for_compare}.}
 
-\item{treatments_for_compare}{(\code{vector}) Treatments for comparison.}
+\item{treatments_for_compare}{(\code{vector}) A character vector specifying exactly two treatment levels to compare.
+The specified treatments must be present in both the \code{treatment} variable of the \code{data} and the column names of the \code{prob_mat}.}
 
 \item{contrast}{(\code{function} or \code{character}) A function to calculate the treatment effect, or character of
 "difference", "risk_ratio", "odds_ratio" for default contrasts.}
