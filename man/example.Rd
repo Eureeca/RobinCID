@@ -12,7 +12,7 @@ A data frame with 500 rows and 8 columns:
 \item{treatment}{The treatment assignment, "1", "2", "3" and "4"}
 \item{y}{The continuous response.}
 \item{y_b}{The binary response, I(y>3).}
-\item{s12, s12.2, s13, s14}{The stratification variables.}
+\item{s12, s12.2, s12.error, s13, s14}{The stratification variables.}
 }
 }
 \source{
