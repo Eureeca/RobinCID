@@ -111,7 +111,6 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
 #' @param contrast_jac (`function`) A function to calculate the Jacobian of the contrast function. Ignored if using
 #' default contrasts.
 #' @param family (`family`) A family object of the glm model. Default: `gaussian()`.
-#' @param stabilize (`logical`) Whether to stabilize. Default: TRUE.
 #' @param alpha (`double`) Nominal level. Default: 0.05.
 #' @param ... Additional arguments passed to `glm`
 #' @details
