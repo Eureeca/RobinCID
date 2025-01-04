@@ -41,7 +41,7 @@ default contrasts.}
 
 \item{alpha}{(\code{double}) Nominal level. Default: 0.05.}
 
-\item{...}{Additional arguments passed to \code{glm}}
+\item{...}{Additional arguments passed to \code{glm}.}
 }
 \description{
 Provides robust inference methods via inverse probability weighting.

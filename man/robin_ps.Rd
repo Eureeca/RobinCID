@@ -42,8 +42,6 @@ default contrasts.}
 \item{alpha}{(\code{double}) Nominal level. Default: 0.05.}
 
 \item{...}{Additional arguments passed to \code{glm}}
-
-\item{stabilize}{(\code{logical}) Whether to stabilize. Default: TRUE.}
 }
 \description{
 Provides robust inference methods via post stratification.
