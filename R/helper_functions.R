@@ -26,8 +26,7 @@ prob_strata_check <- function(data, treatment, prob_mat, stratification, treatme
       unique_pairs <- unique(paste(subset_df[[treatments_for_compare[1]]], subset_df[[treatments_for_compare[2]]]))
 
       if (length(unique_pairs) > 1) {
-        warning("Assignment probabilities vary within stratification levels;
-                ignoring provided stratification and using unique probability levels for stratification instead.")
+        warning("Assignment probabilities vary within stratification levels; ignoring provided stratification and using unique probability levels for stratification instead.")
         return("varying prob_mat")
       }
     }
@@ -56,3 +55,4 @@ prob_mat_generate <- function(data, treatment, stratification) {
   }
   return(as.data.frame(prob_matrix))
 }
+
