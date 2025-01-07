@@ -1,9 +1,9 @@
 Package: RobinCID
-Title: ROBust INference of analysis under Complex Innovative trial Design
-Version: 0.0.1.0
+Title: ROBust INference of analysis in Complex Innovative trial Design
+Version: 0.0.1.1
 Authors@R: 
     person("Yuhan", "Qian", , "yhqian@uw.edu", role = c("aut", "cre"))
-Description: RobinCID is a package to provide robust inference of analysis under complex innovative trial design.
+Description: RobinCID is a package to provide robust inference of analysis in complex innovative trial design.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -19,5 +19,5 @@ Imports:
     stats,
     MASS
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5)
 LazyData: true
