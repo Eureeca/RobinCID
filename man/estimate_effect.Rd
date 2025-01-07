@@ -11,7 +11,7 @@ estimate_effect(
   treatments_for_compare,
   data,
   prob_mat,
-  stratification,
+  post_strat,
   stabilize
 )
 }
@@ -28,7 +28,7 @@ estimate_effect(
 
 \item{prob_mat}{(\code{data.frame}) treatment assignment probability}
 
-\item{stratification}{(\code{character}) name of stratification variable}
+\item{post_strat}{(\code{character}) A string name of post-stratification variable}
 
 \item{stabilize}{(\code{logical}) whether to stabilize}
 }

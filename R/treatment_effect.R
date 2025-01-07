@@ -60,7 +60,7 @@ treatment_effect.prediction_cf <- function(
     alpha = alpha,
     contrast = contrast,
     class = "treatment_effect",
-    stratification = object$stratification,
+    post_strat = object$post_strat,
     method = object$method
   )
 }
@@ -157,7 +157,7 @@ h_lower_tri_idx <- function(n) {
 print.treatment_effect <- function(x, ...) {
   alpha <- attr(x,"alpha")
   data <- find_data(attr(x, "fit.j"))
-  stratification <- attr(x, "stratification")
+  post_strat <- attr(x, "post_strat")
   prob_mat <- round(attr(x, "prob_mat"),3)
   row_counts <- apply(prob_mat, 1, function(row) paste(row, collapse = ", "))
   unique_counts <- table(row_counts)
@@ -169,7 +169,7 @@ print.treatment_effect <- function(x, ...) {
 
   cat("Randomization Probabilities (among the entire concurrent and eligible (ECE) samples):", "\n")
   cat("  Total Sample Size: ",attr(x,"sample_size"),"\n")
-  if(is.null(stratification)){
+  if(is.null(post_strat)){
   prob_tab <- matrix(
     c(names(proportions),
       unique_counts,
@@ -179,7 +179,7 @@ print.treatment_effect <- function(x, ...) {
   colnames(prob_tab) <- c("Unique.Level", "Sample.Size","Proportion")
   } else {
     prob_tab <- matrix(
-      c(unique(data[[stratification]]),
+      c(unique(data[[post_strat]]),
         names(proportions),
         unique_counts,
         proportions),

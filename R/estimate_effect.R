@@ -4,17 +4,17 @@
 #' @param treatments_for_compare description
 #' @param data (`data.frame`) data
 #' @param prob_mat (`data.frame`) treatment assignment probability
-#' @param stratification (`character`) name of stratification variable
+#' @param post_strat (`character`) A string name of post-stratification variable
 #' @param stabilize (`logical`) whether to stabilize
 #' @param y Observed outcome
 #' @param treatment name of treatment
 #'
-estimate_effect <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stratification, stabilize) {
+estimate_effect <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strat, stabilize) {
   UseMethod("estimate_effect", ret)
 }
 
 #' @export
-estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stratification, stabilize){
+estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strat, stabilize){
 
   pij <- prob_mat[[treatments_for_compare[1]]]
   pik <- prob_mat[[treatments_for_compare[2]]]
@@ -63,7 +63,7 @@ estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, 
 }
 
 #' @export
-estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, stratification, stabilize) {
+estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strat, stabilize) {
 
 
   njk <- nrow(data)
@@ -79,20 +79,20 @@ estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, 
 
   temp_df <- data.frame(pij = pij, pik = pik, A.j = A.j, A.k = A.k, pred.j = pred.jk, pred.k = pred.kj, y = y)
 
-  if(is.null(stratification)){
+  if(is.null(post_strat)){
     unique_pairs <- unique(temp_df[, c("pij", "pik")])
     n_pairs <- nrow(unique_pairs)
     strata <- 1:n_pairs
-    temp_df$stratification <- match(interaction(temp_df$pij, temp_df$pik), interaction(unique_pairs$pij, unique_pairs$pik))
+    temp_df$post_strat <- match(interaction(temp_df$pij, temp_df$pik), interaction(unique_pairs$pij, unique_pairs$pik))
   } else {
-    n_pairs <- length(unique(data[[stratification]]))
-    temp_df$stratification <- data[[stratification]]
-    strata <- unique(data[[stratification]])
+    n_pairs <- length(unique(data[[post_strat]]))
+    temp_df$post_strat <- data[[post_strat]]
+    strata <- unique(data[[post_strat]])
   }
   thetas.j <- thetas.k <- sigma11 <- sigma22 <- sigma12 <- Y.bar.j <- Y.bar.k <- ns <- numeric(n_pairs)
 
   for (i in seq_len(n_pairs)) {
-    pair_data <- temp_df[temp_df$stratification==strata[i], ]
+    pair_data <- temp_df[temp_df$post_strat==strata[i], ]
 
     n.jk <- nrow(pair_data)
 

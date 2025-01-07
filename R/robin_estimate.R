@@ -1,13 +1,18 @@
-#' Robust inference method
 #' @noRd
-robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratification = NULL, treatments_for_compare=NULL,
+robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_strat = NULL, treatments_for_compare=NULL,
                      contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05, method=NULL,...){
 
   assert_subset(all.vars(formula), names(data))
   assert_subset(treatment, names(data))
   assert_subset(as.character(treatments_for_compare), as.character(data[[treatment]]))
 
-
+  if(identical(method, "ps")){
+    check_result <- prob_strata_check(data, treatment, probabilities, post_strat, treatments_for_compare)
+    prob_mat <- check_result$prob_mat
+    post_strat <- check_result$post_strat
+  } else {
+    prob_mat <- data[probabilities]
+  }
 
   data[[treatment]] <- as.factor(data[[treatment]])
   treatments_for_compare <- factor(treatments_for_compare, levels=levels(data[[treatment]]))
@@ -17,10 +22,11 @@ robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratifica
   )
 
   # ECE sample
-  data <- data[apply(prob_mat[treatments_for_compare] > 0, 1, all), ]
+  ECE_subset <- apply(data[as.character(treatments_for_compare)] > 0, 1, all)
+  data <- data[ECE_subset, ]
   if (nrow(data) < 1)
     stop("ECE sample size is 0!")
-  prob_mat <- prob_mat[apply(prob_mat[treatments_for_compare] > 0, 1, all), ]
+  prob_mat <- prob_mat[ECE_subset, ]
 
   if (identical(family$family, "Negative Binomial(NA)")) {
     fit.j <-  MASS::glm.nb(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
@@ -31,7 +37,7 @@ robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratifica
   }
   pc <- predict_counterfactual(fit.j = fit.j, fit.k = fit.k, treatment = treatment,
                                treatments_for_compare = treatments_for_compare,
-                               prob_mat = prob_mat, stratification = stratification,
+                               prob_mat = prob_mat, post_strat = post_strat,
                                data = data, stabilize = stabilize, method = method)
 
 
@@ -60,11 +66,10 @@ robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratifica
 #' @param formula (`formula`) A formula of analysis.
 #' @param data (`data.frame`) Input data frame.
 #' @param treatment (`character`) A string name of treatment assignment.
-#' @param prob_mat (`data.frame`) A data frame containing the treatment assignment probabilities.
-#' Each row corresponds to an observation in the `data`.
+#' @param probabilities (`vector`) A character vector specifying column names of treatment assignment probabilities in the `data`.
 #' The column names must represent the treatment levels in the study and should include at least the treatments specified in the `treatments_for_compare`.
 #' @param treatments_for_compare (`vector`) A character vector specifying exactly two treatment levels to compare.
-#' The specified treatments must be present in both the `treatment` variable of the `data` and the column names of the `prob_mat`.
+#' The specified treatments must be present in both the `treatment` variable of the `data` and the column names of the `probability`.
 #' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
 #' "difference", "risk_ratio", "odds_ratio" for default contrasts.
 #' @param contrast_jac (`function`) A function to calculate the Jacobian of the contrast function. Ignored if using
@@ -81,22 +86,23 @@ robin_estimate <- function(formula, data, treatment, prob_mat = NULL, stratifica
 #'   formula = y ~ xb + xc,
 #'   data = example,
 #'   treatment = "treatment",
-#'   prob_mat = prob_mat,
-#'   treatments_for_compare = c("1", "2"),
+#'   probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
+#'   treatments_for_compare = c("trt.1", "trt.2"),
 #'   contrast = "difference",
 #'   contrast_jac = NULL,
 #'   family = gaussian(),
 #'   stabilize = TRUE,
 #'   alpha = 0.05
 #' )
-robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
+robin_wt <- function(formula, data, treatment, probabilities, treatments_for_compare,
                      contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05,...) {
-  if(is.null(prob_mat)) stop("Assignment probabilities MUST be provided.")
-  assert_subset(treatments_for_compare, names(prob_mat))
+  if(is.null(probabilities)) stop("Assignment probabilities MUST be provided.")
+  assert_subset(treatments_for_compare, probabilities)
+
   robin_estimate(formula = formula, data = data, treatment = treatment,
-                 prob_mat = prob_mat,, treatments_for_compare = treatments_for_compare,
+                 probabilities = probabilities, treatments_for_compare = treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, stabilize = stabilize,
-                 alpha = alpha, method = "wt", stratification = NULL, ...)
+                 alpha = alpha, method = "wt", post_strat = NULL, ...)
 }
 
 #' Post-Stratification Based Inference
@@ -104,7 +110,7 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
 #' Provides robust inference methods via post stratification.
 #'
 #' @inheritParams robin_wt
-#' @param stratification (`character`) A string name of stratification variable. Default: `NULL`
+#' @param post_strat (`character`) A string name of post-stratification variable. Default: `NULL`
 #' @details
 #' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export
@@ -113,22 +119,19 @@ robin_wt <- function(formula, data, treatment, prob_mat, treatments_for_compare,
 #'   formula = y ~ xb + xc,
 #'   data = example,
 #'   treatment = "treatment",
-#'   prob_mat = prob_mat,
-#'   stratification = NULL,
-#'   treatments_for_compare = c("1", "2"),
+#'   probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
+#'   post_strat = NULL,
+#'   treatments_for_compare = c("trt.1", "trt.2"),
 #'   contrast = "difference",
 #'   contrast_jac = NULL,
 #'   family = gaussian(),
 #'   alpha = 0.05
 #' )
-robin_ps <- function(formula, data, treatment, prob_mat = NULL, stratification = NULL, treatments_for_compare,
+robin_ps <- function(formula, data, treatment, probabilities = NULL, post_strat = NULL, treatments_for_compare,
                      contrast = "difference", contrast_jac = NULL, family = gaussian(), alpha = 0.05, ...) {
 
-  status <- prob_strata_check(data, treatment, prob_mat, stratification, treatments_for_compare)
-  if(identical(status, "missing prob_mat")) prob_mat <- prob_mat_generate(data, treatment, stratification)
-  if(identical(status, "varying prob_mat")) stratification <- NULL
   robin_estimate(formula = formula, data = data, treatment = treatment,
-                 prob_mat = prob_mat, stratification = stratification, treatments_for_compare = treatments_for_compare,
+                 probabilities = probabilities, post_strat = post_strat, treatments_for_compare = treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, family=family,
                  alpha=alpha, method = "ps", ...)
 }

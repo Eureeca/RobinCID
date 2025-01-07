@@ -13,6 +13,7 @@ A data frame with 500 rows and 8 columns:
 \item{y}{The continuous response.}
 \item{y_b}{The binary response, I(y>3).}
 \item{s12, s12.2, s12.error, s13, s14}{The stratification variables.}
+\item{trt.1, trt.2, trt.3, trt.4}{The assgiment probabilities of trt 1, 2, 3, and 4.}
 }
 }
 \source{
