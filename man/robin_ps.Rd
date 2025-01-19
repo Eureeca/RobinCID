@@ -9,7 +9,7 @@ robin_ps(
   data,
   treatment,
   probabilities = NULL,
-  post_strat = NULL,
+  post_strata = NULL,
   treatments_for_compare,
   contrast = "difference",
   contrast_jac = NULL,
@@ -28,7 +28,7 @@ robin_ps(
 \item{probabilities}{(\code{vector}) A character vector specifying column names of treatment assignment probabilities in the \code{data}.
 The column names must represent the treatment levels in the study and should include at least the treatments specified in the \code{treatments_for_compare}.}
 
-\item{post_strat}{(\code{character}) A string name of post-stratification variable. Default: \code{NULL}}
+\item{post_strata}{(\code{character}) A string name of post-stratification variable. Default: \code{NULL}}
 
 \item{treatments_for_compare}{(\code{vector}) A character vector specifying exactly two treatment levels to compare.
 The specified treatments must be present in both the \code{treatment} variable of the \code{data} and the column names of the \code{probability}.}
@@ -57,7 +57,7 @@ robin_ps(
   data = example,
   treatment = "treatment",
   probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
-  post_strat = NULL,
+  post_strata = NULL,
   treatments_for_compare = c("trt.1", "trt.2"),
   contrast = "difference",
   contrast_jac = NULL,

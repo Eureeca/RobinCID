@@ -1,5 +1,5 @@
 #' @noRd
-robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_strat = NULL, treatments_for_compare=NULL,
+robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_strata = NULL, treatments_for_compare=NULL,
                      contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05, method=NULL,...){
 
   assert_subset(all.vars(formula), names(data))
@@ -7,9 +7,9 @@ robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_
   assert_subset(as.character(treatments_for_compare), as.character(data[[treatment]]))
 
   if(identical(method, "ps")){
-    check_result <- prob_strata_check(data, treatment, probabilities, post_strat, treatments_for_compare)
+    check_result <- prob_strata_check(data, treatment, probabilities, post_strata, treatments_for_compare)
     prob_mat <- check_result$prob_mat
-    post_strat <- check_result$post_strat
+    post_strata <- check_result$post_strata
   } else {
     prob_mat <- data[probabilities]
   }
@@ -37,7 +37,7 @@ robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_
   }
   pc <- predict_counterfactual(fit.j = fit.j, fit.k = fit.k, treatment = treatment,
                                treatments_for_compare = treatments_for_compare,
-                               prob_mat = prob_mat, post_strat = post_strat,
+                               prob_mat = prob_mat, post_strata = post_strata,
                                data = data, stabilize = stabilize, method = method)
 
 
@@ -102,7 +102,7 @@ robin_wt <- function(formula, data, treatment, probabilities, treatments_for_com
   robin_estimate(formula = formula, data = data, treatment = treatment,
                  probabilities = probabilities, treatments_for_compare = treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, stabilize = stabilize,
-                 alpha = alpha, method = "wt", post_strat = NULL, ...)
+                 alpha = alpha, method = "wt", post_strata = NULL, ...)
 }
 
 #' Post-Stratification Based Inference
@@ -110,7 +110,7 @@ robin_wt <- function(formula, data, treatment, probabilities, treatments_for_com
 #' Provides robust inference methods via post stratification.
 #'
 #' @inheritParams robin_wt
-#' @param post_strat (`character`) A string name of post-stratification variable. Default: `NULL`
+#' @param post_strata (`character`) A string name of post-stratification variable. Default: `NULL`
 #' @details
 #' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export
@@ -120,18 +120,18 @@ robin_wt <- function(formula, data, treatment, probabilities, treatments_for_com
 #'   data = example,
 #'   treatment = "treatment",
 #'   probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
-#'   post_strat = NULL,
+#'   post_strata = NULL,
 #'   treatments_for_compare = c("trt.1", "trt.2"),
 #'   contrast = "difference",
 #'   contrast_jac = NULL,
 #'   family = gaussian(),
 #'   alpha = 0.05
 #' )
-robin_ps <- function(formula, data, treatment, probabilities = NULL, post_strat = NULL, treatments_for_compare,
+robin_ps <- function(formula, data, treatment, probabilities = NULL, post_strata = NULL, treatments_for_compare,
                      contrast = "difference", contrast_jac = NULL, family = gaussian(), alpha = 0.05, ...) {
 
   robin_estimate(formula = formula, data = data, treatment = treatment,
-                 probabilities = probabilities, post_strat = post_strat, treatments_for_compare = treatments_for_compare,
+                 probabilities = probabilities, post_strata = post_strata, treatments_for_compare = treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, family=family,
                  alpha=alpha, method = "ps", ...)
 }
