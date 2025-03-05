@@ -9,6 +9,8 @@ robin_wt(
   data,
   treatment,
   probabilities,
+  Z = NULL,
+  Z_table = NULL,
   treatments_for_compare,
   contrast = "difference",
   contrast_jac = NULL,
@@ -27,6 +29,10 @@ robin_wt(
 
 \item{probabilities}{(\code{vector}) A character vector specifying column names of treatment assignment probabilities in the \code{data}.
 The column names must represent the treatment levels in the study and should include at least the treatments specified in the \code{treatments_for_compare}.}
+
+\item{Z}{(\code{vector}) The variable names in \code{data} and \code{Z_table} that define \code{stratum}.}
+
+\item{Z_table}{(\code{data.frame}) A reference table where rows define strata and columns include \code{Z} and \code{probabilities}.}
 
 \item{treatments_for_compare}{(\code{vector}) A character vector specifying exactly two treatment levels to compare.
 The specified treatments must be present in both the \code{treatment} variable of the \code{data} and the column names of the \code{probability}.}
@@ -52,11 +58,30 @@ Provides robust inference methods via inverse probability weighting.
 If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MASS::glm.nb} instead of \code{glm}.
 }
 \examples{
+probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
+
 robin_wt(
   formula = y ~ xb + xc,
   data = example,
   treatment = "treatment",
-  probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
+  probabilities = probabilities,
+  treatments_for_compare = c("trt.1", "trt.2"),
+  contrast = "difference",
+  contrast_jac = NULL,
+  family = gaussian(),
+  stabilize = TRUE,
+  alpha = 0.05
+)
+
+Z <- c("t", "subtype")
+Z_table <- unique(example[c(Z, probabilities)])
+robin_wt(
+  formula = y ~ xb + xc,
+  data = example[setdiff(names(example), probabilities)],
+  treatment = "treatment",
+  probabilities = probabilities,
+  Z = Z,
+  Z_table = Z_table,
   treatments_for_compare = c("trt.1", "trt.2"),
   contrast = "difference",
   contrast_jac = NULL,

@@ -167,21 +167,21 @@ test_that("robin_ps warning works correctly", {
       formula, data = example, treatment = "treatment", probabilities = NULL, post_strata = "s12", treatments_for_compare = c("trt.1","trt.2"),
       contrast = "difference"
     ),
-    "Probability matrix is not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
+    "Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
   )
   expect_warning(
     robin_ps(
       formula, data = example, treatment = "treatment", probabilities = NULL, post_strata = "s13", treatments_for_compare = c("trt.1","trt.3"),
       contrast = "difference"
     ),
-    "Probability matrix is not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
+    "Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
   )
   expect_warning(
     robin_ps(
       formula, data = example, treatment = "treatment", probabilities = NULL, post_strata = "s14", treatments_for_compare = c("trt.1","trt.4"),
       contrast = "difference"
     ),
-    "Probability matrix is not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
+    "Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
   )
 })
 

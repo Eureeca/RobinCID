@@ -60,9 +60,11 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
     fit.j = fit.j,
     fit.k = fit.k,
     prob_mat = prob_mat[treatments_for_compare],
+    Z = attr(prob_mat, "Z"),
     post_strata = post_strata,
     treatment_name = treatment,
     treatment = data[[treatment]],
+    data = data,
     class = "prediction_cf"
   )
 }

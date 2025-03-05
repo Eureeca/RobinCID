@@ -24,7 +24,7 @@ test_that("prob_strata_check works", {
 
   expect_warning(
     prob_strata_check(example, "treatment", NULL, "s12", c("trt.1", "trt.2"))$status,
-    "Probability matrix is not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
+    "Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
   )
 
   expect_identical(

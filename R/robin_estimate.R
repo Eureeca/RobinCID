@@ -1,10 +1,19 @@
 #' @noRd
-robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_strata = NULL, treatments_for_compare=NULL,
-                     contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05, method=NULL,...){
+robin_estimate <- function(formula, data, treatment,
+                           probabilities = NULL, Z = NULL, Z_table = NULL,
+                           post_strata = NULL, treatments_for_compare=NULL,
+                           contrast = "difference", contrast_jac=NULL,
+                           family=gaussian(), stabilize=TRUE, alpha=0.05, method=NULL, ...){
 
   assert_subset(all.vars(formula), names(data))
   assert_subset(treatment, names(data))
   assert_subset(as.character(treatments_for_compare), as.character(data[[treatment]]))
+
+
+  if(!is.null(Z) & !is.null(Z_table)){
+    data <- assign_prob_and_strata(data = data, Z = Z, Z_table = Z_table, probabilities = probabilities, merge_strata = T)
+    post_strata <- "post_stratum"
+  }
 
   if(identical(method, "ps")){
     check_result <- prob_strata_check(data, treatment, probabilities, post_strata, treatments_for_compare)
@@ -27,6 +36,7 @@ robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_
   if (nrow(data) < 1)
     stop("ECE sample size is 0!")
   prob_mat <- prob_mat[ECE_subset, ]
+  attr(prob_mat, "Z") = Z
 
   if (identical(family$family, "Negative Binomial(NA)")) {
     fit.j <-  MASS::glm.nb(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
@@ -68,6 +78,8 @@ robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_
 #' @param treatment (`character`) A string name of treatment assignment.
 #' @param probabilities (`vector`) A character vector specifying column names of treatment assignment probabilities in the `data`.
 #' The column names must represent the treatment levels in the study and should include at least the treatments specified in the `treatments_for_compare`.
+#' @param Z (`vector`) The variable names in `data` and `Z_table` that define `stratum`.
+#' @param Z_table (`data.frame`) A reference table where rows define strata and columns include `Z` and `probabilities`.
 #' @param treatments_for_compare (`vector`) A character vector specifying exactly two treatment levels to compare.
 #' The specified treatments must be present in both the `treatment` variable of the `data` and the column names of the `probability`.
 #' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
@@ -82,11 +94,13 @@ robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_
 #' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export
 #' @examples
+#' probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
+#'
 #' robin_wt(
 #'   formula = y ~ xb + xc,
 #'   data = example,
 #'   treatment = "treatment",
-#'   probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
+#'   probabilities = probabilities,
 #'   treatments_for_compare = c("trt.1", "trt.2"),
 #'   contrast = "difference",
 #'   contrast_jac = NULL,
@@ -94,13 +108,31 @@ robin_estimate <- function(formula, data, treatment, probabilities = NULL, post_
 #'   stabilize = TRUE,
 #'   alpha = 0.05
 #' )
-robin_wt <- function(formula, data, treatment, probabilities, treatments_for_compare,
+#'
+#' Z <- c("t", "subtype")
+#' Z_table <- unique(example[c(Z, probabilities)])
+#' robin_wt(
+#'   formula = y ~ xb + xc,
+#'   data = example[setdiff(names(example), probabilities)],
+#'   treatment = "treatment",
+#'   probabilities = probabilities,
+#'   Z = Z,
+#'   Z_table = Z_table,
+#'   treatments_for_compare = c("trt.1", "trt.2"),
+#'   contrast = "difference",
+#'   contrast_jac = NULL,
+#'   family = gaussian(),
+#'   stabilize = TRUE,
+#'   alpha = 0.05
+#' )
+robin_wt <- function(formula, data, treatment, probabilities, Z = NULL, Z_table = NULL, treatments_for_compare,
                      contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05,...) {
   if(is.null(probabilities)) stop("Assignment probabilities MUST be provided.")
   assert_subset(treatments_for_compare, probabilities)
 
   robin_estimate(formula = formula, data = data, treatment = treatment,
-                 probabilities = probabilities, treatments_for_compare = treatments_for_compare,
+                 probabilities = probabilities, Z = Z, Z_table = Z_table,
+                 treatments_for_compare = treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, stabilize = stabilize,
                  alpha = alpha, method = "wt", post_strata = NULL, ...)
 }
@@ -115,11 +147,14 @@ robin_wt <- function(formula, data, treatment, probabilities, treatments_for_com
 #' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export
 #' @examples
+#' probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
 #' robin_ps(
 #'   formula = y ~ xb + xc,
 #'   data = example,
 #'   treatment = "treatment",
-#'   probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
+#'   probabilities = probabilities,
+#'   Z = NULL,
+#'   Z_table = NULL,
 #'   post_strata = NULL,
 #'   treatments_for_compare = c("trt.1", "trt.2"),
 #'   contrast = "difference",
@@ -127,11 +162,29 @@ robin_wt <- function(formula, data, treatment, probabilities, treatments_for_com
 #'   family = gaussian(),
 #'   alpha = 0.05
 #' )
-robin_ps <- function(formula, data, treatment, probabilities = NULL, post_strata = NULL, treatments_for_compare,
+#'
+#' Z <- c("t", "subtype")
+#' Z_table <- unique(example[c(Z, probabilities)])
+#' robin_ps(
+#'   formula = y ~ xb + xc,
+#'   data = example[setdiff(names(example), probabilities)],
+#'   treatment = "treatment",
+#'   probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
+#'   Z = Z,
+#'   Z_table = Z_table,
+#'   post_strata = NULL,
+#'   treatments_for_compare = c("trt.1", "trt.2"),
+#'   contrast = "difference",
+#'   contrast_jac = NULL,
+#'   family = gaussian(),
+#'   alpha = 0.05
+#' )
+robin_ps <- function(formula, data, treatment, probabilities = NULL, Z = NULL, Z_table = NULL, post_strata = NULL, treatments_for_compare,
                      contrast = "difference", contrast_jac = NULL, family = gaussian(), alpha = 0.05, ...) {
 
   robin_estimate(formula = formula, data = data, treatment = treatment,
-                 probabilities = probabilities, post_strata = post_strata, treatments_for_compare = treatments_for_compare,
+                 probabilities = probabilities, Z = Z, Z_table = Z_table,
+                 post_strata = post_strata, treatments_for_compare = treatments_for_compare,
                  contrast = contrast, contrast_jac = contrast_jac, family=family,
                  alpha=alpha, method = "ps", ...)
 }

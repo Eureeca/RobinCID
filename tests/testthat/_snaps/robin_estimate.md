@@ -34,7 +34,7 @@
 
     Code
       robin_ps(y ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities,
-      post_strat = NULL, treatments_for_compare = c("trt.1", "trt.3"), contrast = "difference")
+      post_strata = NULL, treatments_for_compare = c("trt.1", "trt.3"), contrast = "difference")
     Output
       Method:  Post Stratification 
       Model :  y ~ xb + xc 
@@ -66,21 +66,21 @@
 
     Code
       robin_ps(y ~ xb + xc, data = example, treatment = "treatment", probabilities = NULL,
-      post_strat = "s12.2", treatments_for_compare = c("trt.1", "trt.2"), contrast = "difference")
+      post_strata = "s12.2", treatments_for_compare = c("trt.1", "trt.2"), contrast = "difference")
     Condition
       Warning in `prob_strata_check()`:
-      Probability matrix is not provided. The method assumes treatment assignment probabilities are constant within each level of stratification.
+      Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification.
     Output
       Method:  Post Stratification 
       Model :  y ~ xb + xc 
       Family:  gaussian 
       Randomization Probabilities (among the entire concurrent and eligible (ECE) samples): 
         Total Sample Size:  500 
-        Unique.Level   Sample.Size Proportion
-      1 "0.143, 0.489" "133"       "0.27"    
-      2 "0.169, 0.446" "213"       "0.43"    
-      3 "0.471, 0.529" "104"       "0.21"    
-      4 "0.52, 0.46"   "50"        "0.1"     
+        Stratum.s12.2 Unique.Level   Sample.Size Proportion
+      1 "c"           "0.143, 0.489" "133"       "0.27"    
+      2 "b"           "0.169, 0.446" "213"       "0.43"    
+      3 "a"           "0.471, 0.529" "104"       "0.21"    
+      4 "d"           "0.52, 0.46"   "50"        "0.1"     
       
       Nominal Level:  0.05 
       ---------------------------

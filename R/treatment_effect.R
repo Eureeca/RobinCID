@@ -56,11 +56,13 @@ treatment_effect.prediction_cf <- function(
     treatment = attr(object, "treatment_name"),
     variance = diag(trt_var),
     prob_mat = attr(object, "prob_mat"),
+    Z = attr(object, "Z"),
     sample_size = attr(object, "sample_size"),
     alpha = alpha,
     contrast = contrast,
     class = "treatment_effect",
-    post_strata = object$post_strata,
+    post_strata = attr(object, "post_strata"),
+    data = attr(object, "data"),
     method = object$method
   )
 }
@@ -156,12 +158,12 @@ h_lower_tri_idx <- function(n) {
 #' @export
 print.treatment_effect <- function(x, ...) {
   alpha <- attr(x,"alpha")
-  data <- find_data(attr(x, "fit.j"))
+  data <- attr(x, "data")
   post_strata <- attr(x, "post_strata")
-  prob_mat <- round(attr(x, "prob_mat"),3)
-  row_counts <- apply(prob_mat, 1, function(row) paste(row, collapse = ", "))
-  unique_counts <- table(row_counts)
-  proportions <- round(unique_counts / nrow(prob_mat),2)
+  prob_mat <- round(attr(x, "prob_mat"), 3)
+
+  Z <- attr(x, "Z")
+
 
   cat("Method: ", attr(x, "method"), "\n")
   cat("Model : ", deparse(as.formula(attr(x, "fit"))), "\n")
@@ -169,24 +171,8 @@ print.treatment_effect <- function(x, ...) {
 
   cat("Randomization Probabilities (among the entire concurrent and eligible (ECE) samples):", "\n")
   cat("  Total Sample Size: ",attr(x,"sample_size"),"\n")
-  if(is.null(post_strata)){
-  prob_tab <- matrix(
-    c(names(proportions),
-      unique_counts,
-      proportions),
-    nrow = length(names(proportions))
-  )
-  colnames(prob_tab) <- c("Unique.Level", "Sample.Size","Proportion")
-  } else {
-    prob_tab <- matrix(
-      c(unique(data[[post_strata]]),
-        names(proportions),
-        unique_counts,
-        proportions),
-      nrow = length(names(proportions))
-    )
-    colnames(prob_tab) <- c("Stratum", "Unique.Level", "Sample.Size","Proportion")
-  }
+
+  prob_tab <- prob_table_generate(data, post_strata, prob_mat, Z)
   row.names(prob_tab) <- 1:nrow(prob_tab)
   print(prob_tab)
   cat("\n")
