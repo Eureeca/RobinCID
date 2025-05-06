@@ -5,49 +5,50 @@
 \title{Post-Stratification Based Inference}
 \usage{
 robin_ps(
-  formula,
   data,
-  treatment,
-  probabilities = NULL,
-  Z = NULL,
-  Z_table = NULL,
-  post_strata = NULL,
-  treatments_for_compare,
-  contrast = "difference",
-  contrast_jac = NULL,
-  family = gaussian(),
+  estimand = list(tx_colname, comparison),
+  design = list(randomization_var_colnames, randomization_table = NULL),
+  stratify_by = NULL,
+  outcome_model = list(formula, family = gaussian()),
+  contrast_specs = list(contrast = "difference", contrast_jac = NULL),
   alpha = 0.05,
   ...
 )
 }
 \arguments{
-\item{formula}{(\code{formula}) A formula of analysis.}
+\item{data}{(\code{data.frame}) A data frame containing the dataset.}
 
-\item{data}{(\code{data.frame}) Input data frame.}
+\item{estimand}{(\code{list}) A list specifying the estimand, with two elements:
+\itemize{
+\item \code{tx_colname} (\code{character}): The column name of the treatment variable in \code{data}.
+\item \code{comparison} (\verb{character vector}): A vector specifying exactly two treatment levels to compare.
+}}
 
-\item{treatment}{(\code{character}) A string name of treatment assignment.}
+\item{design}{(\code{list}) A list specifying randomization information, with two elements:
+\itemize{
+\item \code{randomization_var_colnames} (\verb{character vector}): Column names of randomization variables in \code{data}.
+\item \code{randomization_table} (\code{data.frame}, default: \code{NULL}): A data frame containing treatment assignment probabilities
+for each level of the randomization variables. See \emph{Details}.
+}}
 
-\item{probabilities}{(\code{vector}) A character vector specifying column names of treatment assignment probabilities in the \code{data}.
-The column names must represent the treatment levels in the study and should include at least the treatments specified in the \code{treatments_for_compare}.}
+\item{stratify_by}{(\code{character}, optional) The column name of the stratification variable in \code{data}.
+If provided, \code{stratify_by} overrides \code{design}.}
 
-\item{Z}{(\code{vector}) The variable names in \code{data} and \code{Z_table} that define \code{stratum}.}
+\item{outcome_model}{(\code{list}) A list specifying the outcome working model, with two elements:
+\itemize{
+\item \code{formula} (\code{formula}): The regression formula for the analysis.
+\item \code{family} A description of the error distribution and link function for the model. Default: \code{gaussian()}.
+}}
 
-\item{Z_table}{(\code{data.frame}) A reference table where rows define strata and columns include \code{Z} and \code{probabilities}.}
+\item{contrast_specs}{(\code{list}) A list specifying the contrast function and its Jacobian:
+\itemize{
+\item \code{contrast} (\code{function} or \code{character}): A function to compute the treatment effect, or one of \code{"difference"},
+\code{"risk_ratio"}, or \code{"odds_ratio"} for default contrasts.
+\item \code{contrast_jac} (\code{function}, optional): A function to compute the Jacobian of the contrast function.
+Ignored if using default contrasts.
+}}
 
-\item{post_strata}{(\code{character}) A string name of post-stratification variable. Default: \code{NULL}}
-
-\item{treatments_for_compare}{(\code{vector}) A character vector specifying exactly two treatment levels to compare.
-The specified treatments must be present in both the \code{treatment} variable of the \code{data} and the column names of the \code{probability}.}
-
-\item{contrast}{(\code{function} or \code{character}) A function to calculate the treatment effect, or character of
-"difference", "risk_ratio", "odds_ratio" for default contrasts.}
-
-\item{contrast_jac}{(\code{function}) A function to calculate the Jacobian of the contrast function. Ignored if using
-default contrasts.}
-
-\item{family}{(\code{family}) A family object of the glm model. Default: \code{gaussian()}.}
-
-\item{alpha}{(\code{double}) Nominal level. Default: 0.05.}
+\item{alpha}{(\code{numeric}) The nominal significance level. Default: \code{0.05}.}
 
 \item{...}{Additional arguments passed to \code{glm}.}
 }
@@ -58,36 +59,21 @@ Provides robust inference methods via post stratification.
 If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MASS::glm.nb} instead of \code{glm}.
 }
 \examples{
-probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
+data_sim <- RobinCID::example
+tx_colname <- "treatment"
+treatment_levels <- unique(data_sim[[tx_colname]])
+comparison <- c("trt.1", "trt.3")
+randomization_var_colnames <- c("t", "subtype")
+df <- data_sim[c("xb", "xc", tx_colname, randomization_var_colnames, "y")]
+randomization_table <- unique(data_sim[c(randomization_var_colnames, treatment_levels)])
 robin_ps(
-  formula = y ~ xb + xc,
-  data = example,
-  treatment = "treatment",
-  probabilities = probabilities,
-  Z = NULL,
-  Z_table = NULL,
-  post_strata = NULL,
-  treatments_for_compare = c("trt.1", "trt.2"),
-  contrast = "difference",
-  contrast_jac = NULL,
-  family = gaussian(),
-  alpha = 0.05
-)
-
-Z <- c("t", "subtype")
-Z_table <- unique(example[c(Z, probabilities)])
-robin_ps(
-  formula = y ~ xb + xc,
-  data = example[setdiff(names(example), probabilities)],
-  treatment = "treatment",
-  probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
-  Z = Z,
-  Z_table = Z_table,
-  post_strata = NULL,
-  treatments_for_compare = c("trt.1", "trt.2"),
-  contrast = "difference",
-  contrast_jac = NULL,
-  family = gaussian(),
-  alpha = 0.05
+  data = df,
+  estimand = list(tx_colname = tx_colname,
+                  comparison = comparison),
+  design = list(randomization_var_colnames = randomization_var_colnames,
+                randomization_table = randomization_table),
+  stratify_by = NULL,
+  outcome_model = list(formula = y ~ 1,
+                       family = gaussian())
 )
 }

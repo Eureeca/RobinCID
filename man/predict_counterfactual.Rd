@@ -13,7 +13,7 @@ predict_counterfactual(
   post_strata,
   data,
   stabilize,
-  method
+  settings
 )
 }
 \arguments{

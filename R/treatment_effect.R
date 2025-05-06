@@ -9,18 +9,18 @@
 #' @param ... Additional arguments passed to `glm`
 #'
 #' @export
-treatment_effect <- function(object, pair, eff_measure, eff_jacobian, alpha, ...) {
+treatment_effect <- function(object, pair, eff_measure, eff_jacobian, alpha,...) {
   UseMethod("treatment_effect", object)
 }
 
 #' @export
 treatment_effect.prediction_cf <- function(
-    object, pair = names(object), eff_measure, eff_jacobian, alpha, ...) {
+    object, pair = names(object), eff_measure, eff_jacobian, alpha,...) {
 
   checkmate::assert_function(eff_measure)
   contrast_name = deparse(substitute(eff_measure))
   contrast = ifelse(contrast_name=="h_diff", "difference",
-                    ifelse(contrast_name=="h_ratio","ratio",
+                    ifelse(contrast_name=="h_ratio", "ratio",
                            ifelse(contrast_name=="h_odds_ratio", "odds ratio", "customized")))
   if (missing(pair)) {
     pair <- names(object$estimate)
@@ -63,7 +63,8 @@ treatment_effect.prediction_cf <- function(
     class = "treatment_effect",
     post_strata = attr(object, "post_strata"),
     data = attr(object, "data"),
-    method = object$method
+    method = object$method,
+    settings = attr(object, "settings")
   )
 }
 
@@ -160,18 +161,27 @@ print.treatment_effect <- function(x, ...) {
   alpha <- attr(x,"alpha")
   data <- attr(x, "data")
   post_strata <- attr(x, "post_strata")
-  prob_mat <- round(attr(x, "prob_mat"), 3)
-
+  prob_mat <- round(attr(x, "prob_mat"), 2)
+  settings <- attr(x, 'settings')
+  stratify_by <- settings$stratify_by
   Z <- attr(x, "Z")
 
 
   cat("Method: ", attr(x, "method"), "\n")
+  if(settings$method=="ps"){
+    if(is.null(stratify_by)) {
+      cat(paste0("Post stratification is done by variable ", stratify_by, " specified by stratify_by.\n"))
+          } else {cat(paste0("Post stratification is done by the joint levels of the randomization variables specified by randomization_var_colnames.\n"))}
+  }
   cat("Model : ", deparse(as.formula(attr(x, "fit"))), "\n")
   cat("Family: ", attr(x, "fit")$family[[1]], "\n")
 
-  cat("Randomization Probabilities (among the entire concurrent and eligible (ECE) samples):", "\n")
-  cat("  Total Sample Size: ",attr(x,"sample_size"),"\n")
-
+  if(settings$estimated_propensity) {cat("Estimated Propensity Score is used.\n")}
+  p <- ""
+  if(settings$method == "wt" & settings$estimated_propensity) {
+    p <- "Estimated"
+  } else if(settings$method=="ps" & (!is.null(stratify_by) | is.null(stratify_by) & !settings$rand_table)) p="Estimated"
+  cat(paste0(p,"Randomization Probabilities (among the entire concurrent and eligible (ECE) population):"), "\n")
   prob_tab <- prob_table_generate(data, post_strata, prob_mat, Z)
   row.names(prob_tab) <- 1:nrow(prob_tab)
   print(prob_tab)
@@ -180,24 +190,22 @@ print.treatment_effect <- function(x, ...) {
   cat("---------------------------\n")
   cat("Marginal Mean: \n")
 
-  mm = as.numeric(attr(x, "marginal_mean"))
+  mm <- as.numeric(attr(x, "marginal_mean"))
   trt_sd <- sqrt(diag(attr(x, "mmvariance")))
   z_value <- mm / trt_sd
-  p <- 2 * pnorm(abs(z_value), lower.tail = FALSE)
-  ci.lb = mm - qnorm(1-alpha/2) * trt_sd
-  ci.ub = mm + qnorm(1-alpha/2) * trt_sd
+  ci.lb <- mm - qnorm(1-alpha/2) * trt_sd
+  ci.ub <- mm + qnorm(1-alpha/2) * trt_sd
   coef_mat <- matrix(
     c(
       mm,
       trt_sd,
       z_value,
       ci.lb,
-      ci.ub,
-      p
+      ci.ub
     ),
     nrow = length(mm)
   )
-  colnames(coef_mat) <- c("Estimate", "Std.Err","Z Value", "lower.CL", "upper.CL", "Pr(>|z|)")
+  colnames(coef_mat) <- c("Estimate", "Std.Err","Z Value", "lower.CL", "upper.CL")
   row.names(coef_mat) <- attr(x, "mm_name")
   stats::printCoefmat(
     coef_mat,
@@ -211,8 +219,8 @@ print.treatment_effect <- function(x, ...) {
 
   trt_sd <- sqrt(attr(x, "variance"))
   z_value <- as.numeric(x) / trt_sd
-  ci.lb = x - qnorm(1-alpha/2) * trt_sd
-  ci.ub = x + qnorm(1-alpha/2) * trt_sd
+  ci.lb <- x - qnorm(1-alpha/2) * trt_sd
+  ci.ub <- x + qnorm(1-alpha/2) * trt_sd
   p <- 2 * pnorm(abs(z_value), lower.tail = FALSE)
   coef_mat <- matrix(
     c(

@@ -2,38 +2,31 @@
 % Please edit documentation in R/helper_functions.R
 \name{assign_prob_and_strata}
 \alias{assign_prob_and_strata}
-\title{Assign Probability and Strata according to Reference Table}
+\title{Assign Probability according to Design}
 \usage{
-assign_prob_and_strata(data, Z, Z_table, probabilities, merge_strata = TRUE)
+assign_prob_and_strata(
+  data,
+  estimand,
+  design = list(randomization_var_colnames, randomization_table = NULL),
+  method,
+  estimated_propensity = T,
+  stratify_by = NULL
+)
 }
 \arguments{
 \item{data}{(\code{data.frame}) Input data frame.}
 
-\item{Z}{(\code{vector}) The variable names in \code{data} and \code{Z_table} that define \code{stratum}.}
+\item{estimand}{(\code{list}) A list specifying the estimand}
 
-\item{Z_table}{(\code{data.frame}) A reference table where rows define strata and columns include \code{Z} and \code{probabilities}.}
+\item{design}{(\code{list}) A list describing the randomization design. See \code{Details}.}
 
-\item{probabilities}{(\code{vector}) The names of columns in \code{Z_table} representing treatment assignment probabilities.}
+\item{method}{estimation method.}
 
-\item{merge_strata}{(\code{logical}) Whether to merge strata with identical probabilities.}
+\item{stratify_by}{The column name of stratification variable in \code{data}.}
 }
 \description{
-Assign Probability and Strata according to Reference Table
+Assign Probability according to Design
 }
 \details{
-The output column name is \code{stratum}.
-}
-\examples{
-Z <- c("t", "subtype")
-probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-Z_table <- unique(example[c(Z, probabilities)])
-new_example = assign_prob_and_strata(
-                            data = example[Z],
-                            Z = Z,
-                            Z_table =  Z_table,
-                            probabilities = probabilities,
-                            merge_strata = TRUE
-                            )
-head(new_example)
-
+\code{design} has two elements: \code{randomization_var_colnames} (\code{vector}) and \code{randomization_table} (\code{data.frame})
 }

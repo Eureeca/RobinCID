@@ -1,101 +1,143 @@
 # robin_wt snapshot
 
     Code
-      robin_wt(y ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities,
-      treatments_for_compare = c("trt.1", "trt.3"), contrast = "difference")
+      robin_wt(data = data_sim, estimand = list(tx_colname = tx_colname, comparison = c(
+        "trt.1", "trt.2")), design = list(randomization_var_colnames = randomization_var_colnames,
+        randomization_table = randomization_table), estimated_propensity = FALSE,
+      outcome_model = list(formula = y ~ xb + xc, family = gaussian()))
     Output
       Method:  Inverse Probability Weighting 
       Model :  y ~ xb + xc 
       Family:  gaussian 
-      Randomization Probabilities (among the entire concurrent and eligible (ECE) samples): 
-        Total Sample Size:  238 
-        Unique.Level Sample.Size Proportion
-      1 "0.5, 0.15"  "133"       "0.56"    
-      2 "0.5, 0.3"   "105"       "0.44"    
+      Randomization Probabilities (among the entire concurrent and eligible (ECE) population): 
+        t subtype trt.1 trt.2 Sample.Size Proportion
+      1 1       0   0.5  0.50          47       0.09
+      2 1       1   0.5  0.20         105       0.21
+      3 2       0   0.5  0.15          46       0.09
+      4 2       1   0.5  0.50         133       0.27
+      5 3       0   0.5  0.20          11       0.02
+      6 3       1   0.5  0.15         158       0.32
       
       Nominal Level:  0.05 
       ---------------------------
       Marginal Mean: 
-            Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.1    3.029   0.163  18.550    2.709     3.35   <2e-16 ***
-      trt.3    4.147   0.297  13.980    3.566     4.73   <2e-16 ***
-      ---
-      Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+            Estimate Std.Err Z Value lower.CL upper.CL
+      trt.1    2.243   0.124  18.070    2.000     2.49
+      trt.2    5.101   0.302  16.890    4.509     5.69
       
       ---------------------------
       Treatment Effect: 
       Contrast:  difference 
                     Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.3 - trt.1    1.119   0.326   3.430    0.480     1.76    6e-04 ***
-      ---
-      Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-# robin_ps snapshot
-
-    Code
-      robin_ps(y ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities,
-      post_strata = NULL, treatments_for_compare = c("trt.1", "trt.3"), contrast = "difference")
-    Output
-      Method:  Post Stratification 
-      Model :  y ~ xb + xc 
-      Family:  gaussian 
-      Randomization Probabilities (among the entire concurrent and eligible (ECE) samples): 
-        Total Sample Size:  238 
-        Unique.Level Sample.Size Proportion
-      1 "0.5, 0.15"  "133"       "0.56"    
-      2 "0.5, 0.3"   "105"       "0.44"    
-      
-      Nominal Level:  0.05 
-      ---------------------------
-      Marginal Mean: 
-            Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.1    3.023   0.171  17.670    2.687     3.36   <2e-16 ***
-      trt.3    4.149   0.270  15.340    3.619     4.68   <2e-16 ***
-      ---
-      Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-      
-      ---------------------------
-      Treatment Effect: 
-      Contrast:  difference 
-                    Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.3 - trt.1    1.126   0.307   3.660    0.524     1.73  0.00025 ***
+      trt.2 - trt.1    2.858   0.335   8.530    2.201     3.52   <2e-16 ***
       ---
       Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ---
 
     Code
-      robin_ps(y ~ xb + xc, data = example, treatment = "treatment", probabilities = NULL,
-      post_strata = "s12.2", treatments_for_compare = c("trt.1", "trt.2"), contrast = "difference")
-    Condition
-      Warning in `prob_strata_check()`:
-      Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification.
+      robin_wt(data = data_sim, estimand = list(tx_colname = tx_colname, comparison = c(
+        "trt.1", "trt.2")), design = list(randomization_var_colnames = randomization_var_colnames,
+        randomization_table = NULL), estimated_propensity = TRUE, outcome_model = list(
+        formula = y ~ xb + xc, family = gaussian()))
     Output
-      Method:  Post Stratification 
+      Method:  Inverse Probability Weighting 
       Model :  y ~ xb + xc 
       Family:  gaussian 
-      Randomization Probabilities (among the entire concurrent and eligible (ECE) samples): 
-        Total Sample Size:  500 
-        Stratum.s12.2 Unique.Level   Sample.Size Proportion
-      1 "c"           "0.143, 0.489" "133"       "0.27"    
-      2 "b"           "0.169, 0.446" "213"       "0.43"    
-      3 "a"           "0.471, 0.529" "104"       "0.21"    
-      4 "d"           "0.52, 0.46"   "50"        "0.1"     
+      Estimated Propensity Score is used.
+      EstimatedRandomization Probabilities (among the entire concurrent and eligible (ECE) population): 
+        t subtype trt.1 trt.2 Sample.Size Proportion
+      1 1       0  0.53  0.47          47       0.09
+      2 1       1  0.45  0.25         105       0.21
+      3 2       0  0.50  0.50          46       0.09
+      4 2       1  0.49  0.14         133       0.27
+      5 3       0  0.64  0.36          11       0.02
+      6 3       1  0.45  0.23         158       0.32
       
       Nominal Level:  0.05 
       ---------------------------
       Marginal Mean: 
-            Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.1    2.273   0.127  17.900    2.024     2.52   <2e-16 ***
-      trt.2    5.242   0.293  17.870    4.667     5.82   <2e-16 ***
-      ---
-      Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+            Estimate Std.Err Z Value lower.CL upper.CL
+      trt.1    2.272   0.127  17.910    2.024     2.52
+      trt.2    5.140   0.289  17.780    4.573     5.71
       
       ---------------------------
       Treatment Effect: 
       Contrast:  difference 
                     Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.2 - trt.1    2.969   0.356   8.330    2.270     3.67   <2e-16 ***
+      trt.2 - trt.1    2.867   0.323   8.870    2.234      3.5   <2e-16 ***
+      ---
+      Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+# robin_ps snapshot
+
+    Code
+      robin_ps(data = data_sim, estimand = list(tx_colname = tx_colname, comparison = c(
+        "trt.1", "trt.2")), design = list(randomization_var_colnames = randomization_var_colnames,
+        randomization_table = NULL), stratify_by = "s12", outcome_model = list(
+        formula = y ~ xb + xc, family = gaussian()))
+    Condition
+      Warning in `consistency_check()`:
+      The consistency of post stratification is not checked as randomization_table is not provided.
+    Output
+      Method:  Post Stratification 
+      Post stratification is done by the joint levels of the randomization variables specified by randomization_var_colnames.
+      Model :  y ~ xb + xc 
+      Family:  gaussian 
+      EstimatedRandomization Probabilities (among the entire concurrent and eligible (ECE) population): 
+        trt.1 trt.2 Sample.Size Proportion Stratum
+      1  0.53  0.47         104          1       a
+      2  0.45  0.24         263          1       b
+      3  0.49  0.14         133          1       c
+      
+      Nominal Level:  0.05 
+      ---------------------------
+      Marginal Mean: 
+            Estimate Std.Err Z Value lower.CL upper.CL
+      trt.1    2.273   0.125  18.250    2.029     2.52
+      trt.2    5.131   0.292  17.540    4.557     5.70
+      
+      ---------------------------
+      Treatment Effect: 
+      Contrast:  difference 
+                    Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
+      trt.2 - trt.1    2.858   0.324   8.820    2.223     3.49   <2e-16 ***
+      ---
+      Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+# robin_ps snapshot2
+
+    Code
+      robin_ps(data = data_sim, estimand = list(tx_colname = tx_colname, comparison = c(
+        "trt.1", "trt.2")), design = list(randomization_var_colnames = randomization_var_colnames,
+        randomization_table = randomization_table), stratify_by = NULL,
+      outcome_model = list(formula = y ~ xb + xc, family = gaussian()))
+    Output
+      Method:  Post Stratification 
+      Post stratification is done by variable  specified by stratify_by.
+      Model :  y ~ xb + xc 
+      Family:  gaussian 
+      Randomization Probabilities (among the entire concurrent and eligible (ECE) population): 
+        t subtype trt.1 trt.2 Sample.Size Proportion
+      1 1       0   0.5  0.50          47       0.09
+      2 1       1   0.5  0.20         105       0.21
+      3 2       0   0.5  0.15          46       0.09
+      4 2       1   0.5  0.50         133       0.27
+      5 3       0   0.5  0.20          11       0.02
+      6 3       1   0.5  0.15         158       0.32
+      
+      Nominal Level:  0.05 
+      ---------------------------
+      Marginal Mean: 
+            Estimate Std.Err Z Value lower.CL upper.CL
+      trt.1    2.273   0.125  18.250    2.029     2.52
+      trt.2    5.131   0.292  17.540    4.557     5.70
+      
+      ---------------------------
+      Treatment Effect: 
+      Contrast:  difference 
+                    Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
+      trt.2 - trt.1    2.858   0.324   8.820    2.223     3.49   <2e-16 ***
       ---
       Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 

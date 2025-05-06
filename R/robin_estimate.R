@@ -1,32 +1,47 @@
 #' @noRd
-robin_estimate <- function(formula, data, treatment,
-                           probabilities = NULL, Z = NULL, Z_table = NULL,
-                           post_strata = NULL, treatments_for_compare=NULL,
-                           contrast = "difference", contrast_jac=NULL,
-                           family=gaussian(), stabilize=TRUE, alpha=0.05, method=NULL, ...){
+robin_estimate <- function(data, estimand, design,
+                           stratify_by, estimated_propensity,
+                           outcome_model, contrast_specs,
+                           alpha, method,
+                           ...){
+
+  treatment <- estimand$tx_colname
+  treatments_for_compare <- estimand$comparison
+
+  post_strata <- stratify_by
+
+  formula <-outcome_model$formula
+  family <- outcome_model$family
+
+  contrast <- contrast_specs$contrast
+  contrast_jac <- contrast_specs$contrast_jac
+
+  treatment_names <- unique(data[[treatment]])
 
   assert_subset(all.vars(formula), names(data))
   assert_subset(treatment, names(data))
   assert_subset(as.character(treatments_for_compare), as.character(data[[treatment]]))
 
+  Z <- design$randomization_var_colnames
 
-  if(!is.null(Z) & !is.null(Z_table)){
-    data <- assign_prob_and_strata(data = data, Z = Z, Z_table = Z_table, probabilities = probabilities, merge_strata = T)
-    post_strata <- "post_stratum"
-  }
+  consistency_check(data, estimand, design, stratify_by)
 
-  if(identical(method, "ps")){
-    check_result <- prob_strata_check(data, treatment, probabilities, post_strata, treatments_for_compare)
-    prob_mat <- check_result$prob_mat
-    post_strata <- check_result$post_strata
-  } else {
-    prob_mat <- data[probabilities]
-  }
+  data <- assign_prob_and_strata(
+    data = data,
+    estimand = estimand,
+    design = design,
+    method = method,
+    estimated_propensity = estimated_propensity,
+    stratify_by = stratify_by
+  )
+  prob_mat <- data[treatments_for_compare]
+
 
   data[[treatment]] <- as.factor(data[[treatment]])
-  treatments_for_compare <- factor(treatments_for_compare, levels=levels(data[[treatment]]))
+  treatments_for_compare <- factor(treatments_for_compare,
+                                   levels = levels(data[[treatment]]),
+                                   labels = levels(data[[treatment]]))
   assert(
-    test_character(data[[treatment]]),
     test_factor(data[[treatment]])
   )
 
@@ -36,7 +51,7 @@ robin_estimate <- function(formula, data, treatment,
   if (nrow(data) < 1)
     stop("ECE sample size is 0!")
   prob_mat <- prob_mat[ECE_subset, ]
-  attr(prob_mat, "Z") = Z
+  attr(prob_mat, "Z") <- Z
 
   if (identical(family$family, "Negative Binomial(NA)")) {
     fit.j <-  MASS::glm.nb(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
@@ -45,11 +60,14 @@ robin_estimate <- function(formula, data, treatment,
     fit.j <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
     fit.k <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
   }
+  settings <- list(method = method,
+                  estimated_propensity = estimated_propensity,
+                  stratify_by = stratify_by,
+                  rand_table = !is.null(design$randomization_table))
   pc <- predict_counterfactual(fit.j = fit.j, fit.k = fit.k, treatment = treatment,
                                treatments_for_compare = treatments_for_compare,
                                prob_mat = prob_mat, post_strata = post_strata,
-                               data = data, stabilize = stabilize, method = method)
-
+                               data = data, stabilize = TRUE, settings = settings)
 
   if (identical(contrast, "difference")) {
     difference(pc, alpha = alpha)
@@ -73,68 +91,72 @@ robin_estimate <- function(formula, data, treatment,
 #'
 #' Provides robust inference methods via inverse probability weighting.
 #'
-#' @param formula (`formula`) A formula of analysis.
-#' @param data (`data.frame`) Input data frame.
-#' @param treatment (`character`) A string name of treatment assignment.
-#' @param probabilities (`vector`) A character vector specifying column names of treatment assignment probabilities in the `data`.
-#' The column names must represent the treatment levels in the study and should include at least the treatments specified in the `treatments_for_compare`.
-#' @param Z (`vector`) The variable names in `data` and `Z_table` that define `stratum`.
-#' @param Z_table (`data.frame`) A reference table where rows define strata and columns include `Z` and `probabilities`.
-#' @param treatments_for_compare (`vector`) A character vector specifying exactly two treatment levels to compare.
-#' The specified treatments must be present in both the `treatment` variable of the `data` and the column names of the `probability`.
-#' @param contrast (`function` or `character`) A function to calculate the treatment effect, or character of
-#' "difference", "risk_ratio", "odds_ratio" for default contrasts.
-#' @param contrast_jac (`function`) A function to calculate the Jacobian of the contrast function. Ignored if using
-#' default contrasts.
-#' @param family (`family`) A family object of the glm model. Default: `gaussian()`.
-#' @param stabilize (`logical`) Whether to stabilize. Default: TRUE.
-#' @param alpha (`double`) Nominal level. Default: 0.05.
+#' @param data (`data.frame`) A data frame containing the dataset.
+#' @param estimand (`list`) A list specifying the estimand, with two elements:
+#'   - `tx_colname` (`character`): The column name of the treatment variable in `data`.
+#'   - `comparison` (`character vector`): A vector specifying exactly two treatment levels to compare.
+#' @param design (`list`) A list specifying randomization information, with two elements:
+#'   - `randomization_var_colnames` (`character vector`): Column names of randomization variables in `data`.
+#'   - `randomization_table` (`data.frame`, default: `NULL`): A data frame containing treatment assignment probabilities
+#'     for each level of the randomization variables. See *Details*.
+#' @param estimated_propensity (`logical`, default: `TRUE`) Whether to use estimated propensity scores.
+#' @param outcome_model (`list`) A list specifying the outcome working model, with two elements:
+#'   - `formula` (`formula`): The regression formula for the analysis.
+#'   - `family` A description of the error distribution and link function for the model. Default: `gaussian()`.
+#' @param contrast_specs (`list`) A list specifying the contrast function and its Jacobian:
+#'   - `contrast` (`function` or `character`): A function to compute the treatment effect, or one of `"difference"`,
+#'     `"risk_ratio"`, or `"odds_ratio"` for default contrasts.
+#'   - `contrast_jac` (`function`, optional): A function to compute the Jacobian of the contrast function.
+#'     Ignored if using default contrasts.
+#' @param alpha (`numeric`) The nominal significance level. Default: `0.05`.
 #' @param ... Additional arguments passed to `glm`.
 #' @details
-#' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
+#' If `randomization_table` is provided, it must include columns corresponding to `randomization_var_colnames`,
+#' as well as treatment assignment probability columns named after the treatment levels in `tx_colname` from `data`.
+#'
+#' If `family` is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
+#'
 #' @export
 #' @examples
-#' probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-#'
+#' data_sim <- RobinCID::example
+#' tx_colname <- "treatment"
+#' treatment_levels <- unique(data_sim[[tx_colname]])
+#' comparison <- c("trt.1", "trt.3")
+#' randomization_var_colnames <- c("t", "subtype")
+#' df <- data_sim[c("xb", "xc", tx_colname, randomization_var_colnames, "y")]
+#' randomization_table <- unique(data_sim[c(randomization_var_colnames, treatment_levels)])
 #' robin_wt(
-#'   formula = y ~ xb + xc,
-#'   data = example,
-#'   treatment = "treatment",
-#'   probabilities = probabilities,
-#'   treatments_for_compare = c("trt.1", "trt.2"),
-#'   contrast = "difference",
-#'   contrast_jac = NULL,
-#'   family = gaussian(),
-#'   stabilize = TRUE,
-#'   alpha = 0.05
+#'   data = df,
+#'   estimand = list(tx_colname = tx_colname,
+#'                   comparison = comparison),
+#'   design = list(randomization_var_colnames = randomization_var_colnames,
+#'                 randomization_table = randomization_table),
+#'   estimated_propensity = FALSE,
+#'   outcome_model = list(formula = y ~ 1,
+#'                        family = gaussian())
 #' )
 #'
-#' Z <- c("t", "subtype")
-#' Z_table <- unique(example[c(Z, probabilities)])
-#' robin_wt(
-#'   formula = y ~ xb + xc,
-#'   data = example[setdiff(names(example), probabilities)],
-#'   treatment = "treatment",
-#'   probabilities = probabilities,
-#'   Z = Z,
-#'   Z_table = Z_table,
-#'   treatments_for_compare = c("trt.1", "trt.2"),
-#'   contrast = "difference",
-#'   contrast_jac = NULL,
-#'   family = gaussian(),
-#'   stabilize = TRUE,
-#'   alpha = 0.05
-#' )
-robin_wt <- function(formula, data, treatment, probabilities, Z = NULL, Z_table = NULL, treatments_for_compare,
-                     contrast = "difference", contrast_jac=NULL, family=gaussian(), stabilize=TRUE, alpha=0.05,...) {
-  if(is.null(probabilities)) stop("Assignment probabilities MUST be provided.")
-  assert_subset(treatments_for_compare, probabilities)
+robin_wt <- function(data,
+                     estimand = list(tx_colname,
+                                     comparison),
+                     design = list(randomization_var_colnames,
+                                   randomization_table = NULL),
+                     estimated_propensity = TRUE,
+                     outcome_model = list(formula,
+                                          family = gaussian()),
+                     contrast_specs = list(contrast = "difference",
+                                           contrast_jac = NULL),
+                     alpha=0.05,
+                     ...) {
+  if(is.null(design$randomization_table) & !estimated_propensity) stop("Randomization table must be provided if estimated_propensity is False.")
 
-  robin_estimate(formula = formula, data = data, treatment = treatment,
-                 probabilities = probabilities, Z = Z, Z_table = Z_table,
-                 treatments_for_compare = treatments_for_compare,
-                 contrast = contrast, contrast_jac = contrast_jac, stabilize = stabilize,
-                 alpha = alpha, method = "wt", post_strata = NULL, ...)
+  robin_estimate(data = data,
+                 estimand = estimand,
+                 design = design,
+                 estimated_propensity = estimated_propensity,
+                 outcome_model = outcome_model,
+                 contrast_specs = contrast_specs,
+                 alpha=alpha, method = "wt", stratify_by = NULL, ...)
 }
 
 #' Post-Stratification Based Inference
@@ -142,49 +164,47 @@ robin_wt <- function(formula, data, treatment, probabilities, Z = NULL, Z_table 
 #' Provides robust inference methods via post stratification.
 #'
 #' @inheritParams robin_wt
-#' @param post_strata (`character`) A string name of post-stratification variable. Default: `NULL`
+#' @param stratify_by (`character`, optional) The column name of the stratification variable in `data`.
+#' If provided, `stratify_by` overrides `design`.
 #' @details
 #' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export
 #' @examples
-#' probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
+#' data_sim <- RobinCID::example
+#' tx_colname <- "treatment"
+#' treatment_levels <- unique(data_sim[[tx_colname]])
+#' comparison <- c("trt.1", "trt.3")
+#' randomization_var_colnames <- c("t", "subtype")
+#' df <- data_sim[c("xb", "xc", tx_colname, randomization_var_colnames, "y")]
+#' randomization_table <- unique(data_sim[c(randomization_var_colnames, treatment_levels)])
 #' robin_ps(
-#'   formula = y ~ xb + xc,
-#'   data = example,
-#'   treatment = "treatment",
-#'   probabilities = probabilities,
-#'   Z = NULL,
-#'   Z_table = NULL,
-#'   post_strata = NULL,
-#'   treatments_for_compare = c("trt.1", "trt.2"),
-#'   contrast = "difference",
-#'   contrast_jac = NULL,
-#'   family = gaussian(),
-#'   alpha = 0.05
+#'   data = df,
+#'   estimand = list(tx_colname = tx_colname,
+#'                   comparison = comparison),
+#'   design = list(randomization_var_colnames = randomization_var_colnames,
+#'                 randomization_table = randomization_table),
+#'   stratify_by = NULL,
+#'   outcome_model = list(formula = y ~ 1,
+#'                        family = gaussian())
 #' )
-#'
-#' Z <- c("t", "subtype")
-#' Z_table <- unique(example[c(Z, probabilities)])
-#' robin_ps(
-#'   formula = y ~ xb + xc,
-#'   data = example[setdiff(names(example), probabilities)],
-#'   treatment = "treatment",
-#'   probabilities = c("trt.1", "trt.2", "trt.3", "trt.4"),
-#'   Z = Z,
-#'   Z_table = Z_table,
-#'   post_strata = NULL,
-#'   treatments_for_compare = c("trt.1", "trt.2"),
-#'   contrast = "difference",
-#'   contrast_jac = NULL,
-#'   family = gaussian(),
-#'   alpha = 0.05
-#' )
-robin_ps <- function(formula, data, treatment, probabilities = NULL, Z = NULL, Z_table = NULL, post_strata = NULL, treatments_for_compare,
-                     contrast = "difference", contrast_jac = NULL, family = gaussian(), alpha = 0.05, ...) {
+robin_ps <- function(data,
+                     estimand = list(tx_colname,
+                                     comparison),
+                     design = list(randomization_var_colnames,
+                                   randomization_table = NULL),
+                     stratify_by = NULL,
+                     outcome_model = list(formula,
+                                          family = gaussian()),
+                     contrast_specs = list(contrast = "difference",
+                                           contrast_jac = NULL),
+                     alpha=0.05,
+                     ...) {
 
-  robin_estimate(formula = formula, data = data, treatment = treatment,
-                 probabilities = probabilities, Z = Z, Z_table = Z_table,
-                 post_strata = post_strata, treatments_for_compare = treatments_for_compare,
-                 contrast = contrast, contrast_jac = contrast_jac, family=family,
-                 alpha=alpha, method = "ps", ...)
+  robin_estimate(data = data,
+                 estimand = estimand,
+                 design = design,
+                 stratify_by = stratify_by,
+                 outcome_model = outcome_model,
+                 contrast_specs = contrast_specs,
+                 alpha=alpha, method = "ps", estimated_propensity = FALSE, ...)
 }

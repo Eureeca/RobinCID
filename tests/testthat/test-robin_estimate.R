@@ -1,248 +1,202 @@
-test_that("robin_wt works correctly", {
-  formula <- y ~ xb + xc
-  probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-  expect_silent(
-    robin_wt(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_wt(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_wt(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.4"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_wt(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "risk_ratio"
-    )
-  )
-  expect_silent(
-    robin_wt(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "odds_ratio"
-    )
-  )
-})
+complete_df<- RobinCID::example
+tx_colname <- "treatment"
+treatment_levels <- unique(complete_df[[tx_colname]])
+randomization_var_colnames <- c("t", "subtype")
+data_sim <- complete_df[c("xb", "xc", "s12", "s13", tx_colname, randomization_var_colnames, "y", "y_b")]
+randomization_table <- unique(complete_df[c(randomization_var_colnames, treatment_levels)])
 
-test_that("robin_wt error works correctly", {
-  formula <- y ~ xb + xc
-  probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-  expect_error(
+test_that("robin_wt works correctly", {
+
+  expect_silent(
     robin_wt(
-      formula, data = example, treatment = "treatment", probabilities = NULL, treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference"
-    ),
-    "Assignment probabilities MUST be provided."
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', 'trt.2')),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      estimated_propensity = FALSE,
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
+    )
   )
+  expect_silent(
+    robin_wt(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', 'trt.3')),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      estimated_propensity = FALSE,
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
+    )
+  )
+  expect_silent(
+    robin_wt(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', 'trt.2')),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      estimated_propensity = FALSE,
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian()),
+      contrast_specs = list(contrast = "risk_ratio")
+    )
+  )
+  expect_silent(
+    robin_wt(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', 'trt.2')),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      estimated_propensity = FALSE,
+      outcome_model = list(formula = y_b ~ xb + xc,
+                           family = binomial()),
+      contrast_specs = list(contrast = "odds_ratio")
+    )
+  )
+
+  expect_silent(
+    robin_wt(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', 'trt.2')),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      estimated_propensity = TRUE,
+      outcome_model = list(formula = y_b ~ xb + xc,
+                           family = binomial()),
+      contrast_specs = list(contrast = "odds_ratio")
+    )
+  )
+
 })
 
 test_that("robin_wt works correctly under binomial()", {
-  formula <- y_b ~ xb + xc
-  probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
   expect_silent(
     robin_wt(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference", family = binomial()
-    )
-  )
-  expect_silent(
-    robin_wt(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "difference", family = binomial()
-    )
-  )
-  expect_silent(
-    robin_wt(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.4"),
-      contrast = "difference", family = binomial()
-    )
-  )
-  expect_silent(
-    robin_wt(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "risk_ratio", family = binomial()
-    )
-  )
-  expect_silent(
-    robin_wt(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "odds_ratio", family = binomial()
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', 'trt.2')),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      estimated_propensity = FALSE,
+      outcome_model = list(formula = y_b ~ xb + xc,
+                           family = binomial())
     )
   )
 })
 
 test_that("robin_wt snapshot",{
-  probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-  expect_snapshot(robin_wt(
-    y ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, treatments_for_compare = c("trt.1","trt.3"),
-    contrast = "difference"
-  ))
-})
+  expect_snapshot(
+    robin_wt(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', 'trt.2')),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      estimated_propensity = FALSE,
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
+    )
+  )
 
-test_that("robin_ps works correctly", {
-  formula <- y ~ xb + xc
-  probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.4"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = "s12", treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = "s12.2", treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = "s13", treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = "s14", treatments_for_compare = c("trt.1","trt.4"),
-      contrast = "difference"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "risk_ratio"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "odds_ratio"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.4"),
-      contrast = "risk_ratio"
-    )
-  )
-  expect_silent(
-    robin_ps(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.4"),
-      contrast = "odds_ratio"
+  expect_snapshot(
+    robin_wt(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', 'trt.2')),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = NULL),
+      estimated_propensity = TRUE,
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
     )
   )
 })
 
-test_that("robin_ps warning works correctly", {
-  formula <- y ~ xb + xc
-  probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-  expect_warning(
+test_that("robin_ps works correctly", {
+  expect_silent(
     robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = NULL, post_strata = "s12", treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference"
-    ),
-    "Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', "trt.2")),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      stratify_by = NULL,
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
+    )
+  )
+  expect_silent(
+    robin_ps(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', "trt.3")),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      stratify_by = NULL,
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
+    )
   )
   expect_warning(
     robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = NULL, post_strata = "s13", treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "difference"
-    ),
-    "Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', "trt.3")),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = NULL),
+      stratify_by = "s13",
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
+    )
   )
-  expect_warning(
+  expect_silent(
     robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = NULL, post_strata = "s14", treatments_for_compare = c("trt.1","trt.4"),
-      contrast = "difference"
-    ),
-    "Assignment probabilities are not provided. The method assumes treatment assignment probabilities are constant within each level of stratification."
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', "trt.2")),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      stratify_by = NULL,
+      outcome_model = list(formula = y_b ~ xb + xc,
+                           family = binomial())
+    )
   )
 })
 
-test_that("robin_ps error works correctly", {
-  formula <- y ~ xb + xc
-  expect_error(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = NULL, post_strata = NULL, treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference"
-    ),
-    "Either assignment probabilities or strata MUST be provided."
-  )
-})
 
-test_that("robin_ps works correctly under binomial()", {
-  formula <- y_b ~ xb + xc
-  probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.2"),
-      contrast = "difference", family = binomial()
-    )
-  )
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = "s13", treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "difference", family = binomial()
-    )
-  )
-  expect_silent(
-    robin_ps(
-      formula, data = example, treatment = "treatment", probabilities = probabilities, post_strata = "s14", treatments_for_compare = c("trt.1","trt.4"),
-      contrast = "difference", family = binomial()
-    )
-  )
-  expect_silent(
-    robin_ps(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, post_strata = "s13", treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "risk_ratio", family = binomial()
-    )
-  )
-  expect_silent(
-    robin_ps(
-      y_b ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.3"),
-      contrast = "odds_ratio", family = binomial()
-    )
-  )
-})
 
 test_that("robin_ps snapshot",{
-  probabilities <- c("trt.1", "trt.2", "trt.3", "trt.4")
-  expect_snapshot(robin_ps(
-    y ~ xb + xc, data = example, treatment = "treatment", probabilities = probabilities, post_strata = NULL, treatments_for_compare = c("trt.1","trt.3"),
-    contrast = "difference"
-  ))
+  expect_snapshot(
+    robin_ps(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', "trt.2")),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = NULL),
+      stratify_by = "s12",
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
+    )
+  )
 })
 
-test_that("robin_ps snapshot",{
-  expect_snapshot(robin_ps(
-    y ~ xb + xc, data = example, treatment = "treatment", probabilities = NULL, post_strata = "s12.2", treatments_for_compare = c("trt.1","trt.2"),
-    contrast = "difference"
-  ))
+test_that("robin_ps snapshot2", {
+  expect_snapshot(
+    robin_ps(
+      data = data_sim,
+      estimand = list(tx_colname = tx_colname,
+                      comparison = c('trt.1', "trt.2")),
+      design = list(randomization_var_colnames = randomization_var_colnames,
+                    randomization_table = randomization_table),
+      stratify_by = NULL,
+      outcome_model = list(formula = y ~ xb + xc,
+                           family = gaussian())
+    )
+  )
 })
 

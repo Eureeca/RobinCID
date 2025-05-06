@@ -14,18 +14,18 @@
 #' @return Numeric matrix of counter factual prediction.
 #'
 #' @export
-predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, post_strata, data,stabilize, method) {
+predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, post_strata, data,stabilize, settings) {
   UseMethod("predict_counterfactual", fit.j)
 }
 
 #' @export
 predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_compare,
-                                      prob_mat, post_strata, data = merge(find_data(fit.j),find_data(fit.k)),stabilize, method) {
+                                      prob_mat, post_strata, data = merge(find_data(fit.j),find_data(fit.k)),stabilize, settings) {
   checkmate::assert_data_frame(data)
   checkmate::assert_subset(treatment, colnames(data))
   formula <- formula(fit.j)
 
-  treatments_for_compare <- as.factor(treatments_for_compare)
+  treatments_for_compare <- as.character(treatments_for_compare)
   data[[treatment]] <- as.factor(data[[treatment]])
   checkmate::assert(
     checkmate::test_character(data[[treatment]]),
@@ -33,7 +33,7 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
   )
 
 
-  ECE_size = nrow(data)
+  ECE_size <- nrow(data)
 
   trt_lvls <- treatments_for_compare
   n_lvls <- length(treatments_for_compare)
@@ -48,7 +48,7 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
   ret <- matrix(c(preds.j, preds.k), ncol = n_lvls, dimnames = list(row.names(data), trt_lvls))
   y <- data[[all.vars(fit.j$formula)[1]]]
 
-  class(ret) <- method
+  class(ret) <- settings$method
   estimation <- estimate_effect(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strata, stabilize=stabilize)
 
   structure(
@@ -65,13 +65,15 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
     treatment_name = treatment,
     treatment = data[[treatment]],
     data = data,
-    class = "prediction_cf"
+    class = "prediction_cf",
+    settings = settings
   )
 }
 
 #' @export
 predict_counterfactual.glm <- function(fit.j,fit.k, treatment, treatments_for_compare,
-                                       prob_mat, post_strata, data = merge(find_data(fit.j),find_data(fit.k)),stabilize,method) {
+                                       prob_mat, post_strata, data = merge(find_data(fit.j),find_data(fit.k)),stabilize,settings){
   predict_counterfactual.lm(fit.j = fit.j,fit.k=fit.k, treatment = treatment,
-                            treatments_for_compare = treatments_for_compare,prob_mat, post_strata = post_strata,  data = data,stabilize,method)
+                            treatments_for_compare = treatments_for_compare,prob_mat, post_strata = post_strata,
+                            data = data, stabilize, settings)
 }

@@ -1,6 +1,6 @@
 Package: RobinCID
 Title: ROBust INference of analysis in Complex Innovative trial Design
-Version: 0.0.1.1
+Version: 0.0.2.1
 Authors@R: 
     person("Yuhan", "Qian", , "yhqian@uw.edu", role = c("aut", "cre"))
 Description: RobinCID is a package to provide robust inference of analysis in complex innovative trial design.
