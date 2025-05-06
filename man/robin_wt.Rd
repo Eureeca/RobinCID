@@ -6,10 +6,10 @@
 \usage{
 robin_wt(
   data,
-  estimand = list(tx_colname, comparison),
-  design = list(randomization_var_colnames, randomization_table = NULL),
+  estimand = list(tx_colname = NULL, comparison = NULL),
+  design = list(randomization_var_colnames = NULL, randomization_table = NULL),
   estimated_propensity = TRUE,
-  outcome_model = list(formula, family = gaussian()),
+  outcome_model = list(formula = NULL, family = gaussian()),
   contrast_specs = list(contrast = "difference", contrast_jac = NULL),
   alpha = 0.05,
   ...

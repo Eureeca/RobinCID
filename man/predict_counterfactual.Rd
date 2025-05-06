@@ -33,7 +33,7 @@ predict_counterfactual(
 
 \item{stabilize}{stabilize}
 
-\item{method}{estimation method}
+\item{settings}{estimation setting}
 }
 \value{
 Numeric matrix of counter factual prediction.

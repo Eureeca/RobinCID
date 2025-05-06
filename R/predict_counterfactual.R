@@ -9,12 +9,12 @@
 #' @param prob_mat (`data.frame`) treatment assignment probabilities
 #' @param post_strata (`character`) A string name of post-stratification variable.
 #' @param stabilize stabilize
-#' @param method estimation method
+#' @param settings estimation setting
 #'
 #' @return Numeric matrix of counter factual prediction.
 #'
 #' @export
-predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, post_strata, data,stabilize, settings) {
+predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, post_strata, data, stabilize, settings) {
   UseMethod("predict_counterfactual", fit.j)
 }
 

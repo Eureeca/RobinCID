@@ -1,3 +1,35 @@
+.return.error <- function(err){
+  if(length(err) > 0) stop(paste0(err, sep="\n"))
+}
+
+.check.null <- function(estimand, design, outcome_model){
+  fields <- list(
+    "estimand$tx_colname" = estimand$tx_colname,
+    "estimand$comparison" = estimand$comparison,
+    "design$randomization_var_colnames" = design$randomization_var_colnames,
+    "outcome_model$formula" = outcome_model$formula
+  )
+
+  null_fields <- names(fields)[vapply(fields, is.null, logical(1))]
+
+  if (length(null_fields) > 0) {
+    return(paste0("The following must be provided: ", paste(null_fields, collapse = ", ")))
+  }
+}
+
+.check.wt <- function(design, estimated_propensity, method){
+  if(is.null(design$randomization_table) & !estimated_propensity & method == "wt") {
+    return("The randomization_table must be provided if estimated_propensity is FALSE")
+  }
+}
+
+validate_inputs <- function(estimand, design, outcome_model, estimated_propensity, method){
+  errors <- character()
+  errors <- c(errors, .check.null(estimand, design, outcome_model))
+  errors <- c(errors, .check.wt(design, estimated_propensity, method))
+  .return.error(errors)
+}
+
 prob_table_generate <- function(data, post_strata, prob_mat, Z) {
 
   # Get treatment column names from prob_mat
@@ -46,7 +78,7 @@ prob_table_generate <- function(data, post_strata, prob_mat, Z) {
 
 consistency_check <- function(data,
                               estimand,
-                              design = list(randomization_var_colnames,
+                              design = list(randomization_var_colnames = NULL,
                                             randomization_table = NULL),
                               stratify_by = NULL){
   treatment <- estimand$tx_colname
@@ -120,9 +152,10 @@ consistency_check <- function(data,
 #' Assign Probability according to Design
 #'
 #' @param data (`data.frame`) Input data frame.
-#' @param estimand (`list`) A list specifying the estimand
+#' @param estimand (`list`) A list specifying the estimand.
 #' @param design (`list`) A list describing the randomization design. See `Details`.
 #' @param method estimation method.
+#' @param estimated_propensity Whether to use estimated propensity score.
 #' @param stratify_by The column name of stratification variable in `data`.
 #' @export
 #' @details
@@ -130,7 +163,7 @@ consistency_check <- function(data,
 #'
 assign_prob_and_strata <- function(data,
                                    estimand,
-                                   design = list(randomization_var_colnames,
+                                   design = list(randomization_var_colnames = NULL,
                                                  randomization_table = NULL),
                                    method,
                                    estimated_propensity = T,

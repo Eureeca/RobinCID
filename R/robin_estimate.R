@@ -1,10 +1,17 @@
 #' @noRd
-robin_estimate <- function(data, estimand, design,
+robin_estimate <- function(data,
+                           estimand = list(tx_colname = NULL,
+                                           comparison = NULL),
+                           design = list(randomization_var_colnames = NULL,
+                                         randomization_table = NULL),
                            stratify_by, estimated_propensity,
-                           outcome_model, contrast_specs,
+                           outcome_model = list(formula = NULL,
+                                                family = gaussian()),
+                           contrast_specs = list(contrast = "difference",
+                                                 contrast_jac = NULL),
                            alpha, method,
                            ...){
-
+  validate_inputs(estimand, design, outcome_model, estimated_propensity, method)
   treatment <- estimand$tx_colname
   treatments_for_compare <- estimand$comparison
 
@@ -137,18 +144,17 @@ robin_estimate <- function(data, estimand, design,
 #' )
 #'
 robin_wt <- function(data,
-                     estimand = list(tx_colname,
-                                     comparison),
-                     design = list(randomization_var_colnames,
+                     estimand = list(tx_colname = NULL,
+                                     comparison = NULL),
+                     design = list(randomization_var_colnames = NULL,
                                    randomization_table = NULL),
                      estimated_propensity = TRUE,
-                     outcome_model = list(formula,
+                     outcome_model = list(formula = NULL,
                                           family = gaussian()),
                      contrast_specs = list(contrast = "difference",
                                            contrast_jac = NULL),
                      alpha=0.05,
                      ...) {
-  if(is.null(design$randomization_table) & !estimated_propensity) stop("Randomization table must be provided if estimated_propensity is False.")
 
   robin_estimate(data = data,
                  estimand = estimand,
@@ -188,12 +194,12 @@ robin_wt <- function(data,
 #'                        family = gaussian())
 #' )
 robin_ps <- function(data,
-                     estimand = list(tx_colname,
-                                     comparison),
-                     design = list(randomization_var_colnames,
+                     estimand = list(tx_colname = NULL,
+                                     comparison = NULL),
+                     design = list(randomization_var_colnames = NULL,
                                    randomization_table = NULL),
                      stratify_by = NULL,
-                     outcome_model = list(formula,
+                     outcome_model = list(formula = NULL,
                                           family = gaussian()),
                      contrast_specs = list(contrast = "difference",
                                            contrast_jac = NULL),

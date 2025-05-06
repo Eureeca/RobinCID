@@ -148,3 +148,31 @@ test_that("Logic is correct", {
     )
   )
 })
+
+test_that("Null check",{
+  expect_error(
+    robin_wt(
+      data = df,
+      estimand = estimand,
+      design = list(
+        randomization_var_colnames = NULL,
+        randomization_table = NULL
+      ),
+      estimated_propensity = F,
+      outcome_model = outcome_model
+    )
+  )
+  expect_error(
+    robin_wt(
+      data = df,
+      estimand = list(tx_colname = NULL,
+                      comparison = NULL),
+      design = list(
+        randomization_var_colnames = NULL,
+        randomization_table = randomization_table
+      ),
+      estimated_propensity = F,
+      outcome_model = outcome_model
+    )
+  )
+})

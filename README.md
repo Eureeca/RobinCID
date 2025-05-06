@@ -16,5 +16,5 @@ You can install the development version of RobinCID from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("Eureeca/RobinCID")
+devtools::install_github("Eureeca/RobinCar@new_structure")
 ```

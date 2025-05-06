@@ -7,7 +7,7 @@
 assign_prob_and_strata(
   data,
   estimand,
-  design = list(randomization_var_colnames, randomization_table = NULL),
+  design = list(randomization_var_colnames = NULL, randomization_table = NULL),
   method,
   estimated_propensity = T,
   stratify_by = NULL
@@ -16,11 +16,13 @@ assign_prob_and_strata(
 \arguments{
 \item{data}{(\code{data.frame}) Input data frame.}
 
-\item{estimand}{(\code{list}) A list specifying the estimand}
+\item{estimand}{(\code{list}) A list specifying the estimand.}
 
 \item{design}{(\code{list}) A list describing the randomization design. See \code{Details}.}
 
 \item{method}{estimation method.}
+
+\item{estimated_propensity}{Whether to use estimated propensity score.}
 
 \item{stratify_by}{The column name of stratification variable in \code{data}.}
 }
