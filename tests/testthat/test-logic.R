@@ -97,15 +97,17 @@ test_that("Logic is correct", {
     )
   )
 
-  robin_wt(
-    data = df,
-    estimand = estimand,
-    design = list(
-      randomization_var_colnames = c("t", "subtype"),
-      randomization_table = randomization_table
-    ),
-    estimated_propensity = T,
-    outcome_model = outcome_model
+  expect_no_message(
+    robin_wt(
+      data = df,
+      estimand = estimand,
+      design = list(
+        randomization_var_colnames = c("t", "subtype"),
+        randomization_table = randomization_table
+      ),
+      estimated_propensity = T,
+      outcome_model = outcome_model
+    )
   )
 
   expect_no_message(
@@ -134,6 +136,20 @@ test_that("Logic is correct", {
       outcome_model = outcome_model
     )
   )
+
+  expect_error(
+    robin_ps(
+      data = df,
+      estimand = estimand,
+      design = list(
+        randomization_var_colnames = c("t", "subtype"),
+        randomization_table = randomization_table[,1:3]
+      ),
+      stratify_by = NULL,
+      outcome_model = outcome_model
+    )
+  )
+
 
   expect_error(
     robin_ps(

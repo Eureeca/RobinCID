@@ -13,10 +13,10 @@
         t subtype trt.1 trt.2 Sample.Size Proportion
       1 1       0   0.5  0.50          47       0.09
       2 1       1   0.5  0.20         105       0.21
-      3 2       0   0.5  0.15          46       0.09
-      4 2       1   0.5  0.50         133       0.27
-      5 3       0   0.5  0.20          11       0.02
-      6 3       1   0.5  0.15         158       0.32
+      3 2       0   0.5  0.50          46       0.09
+      4 2       1   0.5  0.15         133       0.27
+      5 3       0   0.5  0.50          11       0.02
+      6 3       1   0.5  0.20         158       0.32
       
       Nominal Level:  0.05 
       ---------------------------
@@ -45,7 +45,7 @@
       Model :  y ~ xb + xc 
       Family:  gaussian 
       Estimated Propensity Score is used.
-      EstimatedRandomization Probabilities (among the entire concurrent and eligible (ECE) population): 
+      Estimated Randomization Probabilities (among the entire concurrent and eligible (ECE) population): 
         t subtype trt.1 trt.2 Sample.Size Proportion
       1 1       0  0.53  0.47          47       0.09
       2 1       1  0.45  0.25         105       0.21
@@ -81,14 +81,14 @@
       The consistency of post stratification is not checked as randomization_table is not provided.
     Output
       Method:  Post Stratification 
-      Post stratification is done by the joint levels of the randomization variables specified by randomization_var_colnames.
+      Post stratification is done by variable s12 specified by stratify_by.
       Model :  y ~ xb + xc 
       Family:  gaussian 
-      EstimatedRandomization Probabilities (among the entire concurrent and eligible (ECE) population): 
+      Estimated Randomization Probabilities (among the entire concurrent and eligible (ECE) population): 
         trt.1 trt.2 Sample.Size Proportion Stratum
-      1  0.53  0.47         104          1       a
-      2  0.45  0.24         263          1       b
-      3  0.49  0.14         133          1       c
+      1  0.53  0.47         104       0.21       a
+      2  0.45  0.24         263       0.53       b
+      3  0.49  0.14         133       0.27       c
       
       Nominal Level:  0.05 
       ---------------------------
@@ -114,17 +114,17 @@
       outcome_model = list(formula = y ~ xb + xc, family = gaussian()))
     Output
       Method:  Post Stratification 
-      Post stratification is done by variable  specified by stratify_by.
+      Post stratification is done by the joint levels of the randomization variables specified by randomization_var_colnames.
       Model :  y ~ xb + xc 
       Family:  gaussian 
       Randomization Probabilities (among the entire concurrent and eligible (ECE) population): 
         t subtype trt.1 trt.2 Sample.Size Proportion
       1 1       0   0.5  0.50          47       0.09
       2 1       1   0.5  0.20         105       0.21
-      3 2       0   0.5  0.15          46       0.09
-      4 2       1   0.5  0.50         133       0.27
-      5 3       0   0.5  0.20          11       0.02
-      6 3       1   0.5  0.15         158       0.32
+      3 2       0   0.5  0.50          46       0.09
+      4 2       1   0.5  0.15         133       0.27
+      5 3       0   0.5  0.50          11       0.02
+      6 3       1   0.5  0.20         158       0.32
       
       Nominal Level:  0.05 
       ---------------------------

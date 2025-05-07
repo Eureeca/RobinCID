@@ -169,7 +169,7 @@ print.treatment_effect <- function(x, ...) {
 
   cat("Method: ", attr(x, "method"), "\n")
   if(settings$method=="ps"){
-    if(is.null(stratify_by)) {
+    if(!is.null(stratify_by)) {
       cat(paste0("Post stratification is done by variable ", stratify_by, " specified by stratify_by.\n"))
           } else {cat(paste0("Post stratification is done by the joint levels of the randomization variables specified by randomization_var_colnames.\n"))}
   }
@@ -179,8 +179,8 @@ print.treatment_effect <- function(x, ...) {
   if(settings$estimated_propensity) {cat("Estimated Propensity Score is used.\n")}
   p <- ""
   if(settings$method == "wt" & settings$estimated_propensity) {
-    p <- "Estimated"
-  } else if(settings$method=="ps" & (!is.null(stratify_by) | is.null(stratify_by) & !settings$rand_table)) p="Estimated"
+    p <- "Estimated "
+  } else if(settings$method=="ps" & (!is.null(stratify_by) | is.null(stratify_by) & !settings$rand_table)) p="Estimated "
   cat(paste0(p,"Randomization Probabilities (among the entire concurrent and eligible (ECE) population):"), "\n")
   prob_tab <- prob_table_generate(data, post_strata, prob_mat, Z)
   row.names(prob_tab) <- 1:nrow(prob_tab)

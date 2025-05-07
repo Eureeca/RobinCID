@@ -45,31 +45,39 @@ prob_table_generate <- function(data, post_strata, prob_mat, Z) {
     prob_tab$Sample.Size <- as.numeric(unique_counts)
     prob_tab$Proportion <- as.numeric(proportions)
 
-      unique_strata <- unique(data[[post_strata]])
-      strata_list <- lapply(unique_strata, function(stratum) {
+    unique_strata <- unique(data[[post_strata]])
+    strata_list <- lapply(unique_strata, function(stratum) {
         strata_indices <- which(data[[post_strata]] == stratum)
         strata_probs <- unique(prob_mat[strata_indices, , drop = FALSE])
         count_values <- table(apply(prob_mat[strata_indices, , drop = FALSE], 1, paste, collapse = ", "))
-        proportion_values <- round(as.numeric(count_values) / length(strata_indices), 2)
+        proportion_values <- round(as.numeric(count_values) / nrow(data), 2)
 
-        strata_df <- as.data.frame(strata_probs)
+        strata_df <- as.data.frame(round(strata_probs, 2))
         strata_df$Sample.Size <- as.numeric(count_values)
         strata_df$Proportion <- proportion_values
         strata_df$Stratum <- stratum
         return(strata_df)
-      })
-      prob_tab <- do.call(rbind, strata_list)
+    })
+    prob_tab <- do.call(rbind, strata_list)
   } else {  # Case when stratify_by is not provided
-    unique_Z <- unique(data[Z])
-    unique_probs <- unique(prob_mat)
+    # Collapse each row of Z to a string key
+    Z_keys <- apply(data[Z], 1, paste, collapse = ", ")
+    prob_keys <- apply(prob_mat, 1, paste, collapse = ", ")
+    group_keys <- paste(Z_keys, prob_keys, sep = " | ")
 
-    Z_counts <- apply(data[Z], 1, function(row) paste(row, collapse = ", "))
-    unique_counts <- table(Z_counts)
-    proportions <- round(unique_counts / nrow(data), 2)
+    key_table <- table(group_keys)
+    proportions <- round(key_table / nrow(data), 2)
 
-    prob_tab <- as.data.frame(unique_Z)
-    prob_tab <- cbind(prob_tab, unique_probs)  # Keep treatment probabilities separate
-    prob_tab$Sample.Size <- as.numeric(unique_counts)
+    # Reconstruct the original values for output
+    keys_split <- strsplit(names(key_table), " \\| ")
+    Z_values <- do.call(rbind, lapply(keys_split, function(x) strsplit(x[1], ", ")[[1]]))
+    prob_values <- do.call(rbind, lapply(keys_split, function(x) {
+      round(as.numeric(strsplit(x[2], ", ")[[1]]), 2)
+    }))
+
+    prob_tab <- data.frame(Z_values, prob_values)
+    names(prob_tab) <- c(Z, trt_cols)
+    prob_tab$Sample.Size <- as.numeric(key_table)
     prob_tab$Proportion <- as.numeric(proportions)
   }
 

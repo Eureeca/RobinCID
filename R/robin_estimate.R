@@ -48,9 +48,6 @@ robin_estimate <- function(data,
   treatments_for_compare <- factor(treatments_for_compare,
                                    levels = levels(data[[treatment]]),
                                    labels = levels(data[[treatment]]))
-  assert(
-    test_factor(data[[treatment]])
-  )
 
   # ECE sample
   ECE_subset <- apply(data[as.character(treatments_for_compare)] > 0, 1, all)
