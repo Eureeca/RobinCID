@@ -22,14 +22,14 @@
       ---------------------------
       Marginal Mean: 
             Estimate Std.Err Z Value lower.CL upper.CL
-      trt.1    2.243   0.124  18.070    2.000     2.49
-      trt.2    5.101   0.302  16.890    4.509     5.69
+      trt.1    2.243   0.124    18.1    2.000    2.486
+      trt.2    5.101   0.302    16.9    4.509    5.693
       
       ---------------------------
       Treatment Effect: 
       Contrast:  difference 
                     Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.2 - trt.1    2.858   0.335   8.530    2.201     3.52   <2e-16 ***
+      trt.2 - trt.1    2.858   0.335    8.53    2.201    3.515   <2e-16 ***
       ---
       Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -58,14 +58,14 @@
       ---------------------------
       Marginal Mean: 
             Estimate Std.Err Z Value lower.CL upper.CL
-      trt.1    2.272   0.127  17.910    2.024     2.52
-      trt.2    5.140   0.289  17.780    4.573     5.71
+      trt.1    2.272   0.127    17.9    2.024    2.521
+      trt.2    5.140   0.289    17.8    4.573    5.706
       
       ---------------------------
       Treatment Effect: 
       Contrast:  difference 
                     Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.2 - trt.1    2.867   0.323   8.870    2.234      3.5   <2e-16 ***
+      trt.2 - trt.1    2.867   0.323    8.87    2.234    3.501   <2e-16 ***
       ---
       Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -78,7 +78,8 @@
         formula = y ~ xb + xc, family = gaussian()))
     Condition
       Warning in `consistency_check()`:
-      The consistency of post stratification is not checked as randomization_table is not provided.
+      Assignment probabilities for the arms being compared must be constant within each level of stratify_by.
+      This check is skipped because randomization_table was not provided.
     Output
       Method:  Post Stratification 
       Post stratification is done by variable s12 specified by stratify_by.
@@ -94,14 +95,14 @@
       ---------------------------
       Marginal Mean: 
             Estimate Std.Err Z Value lower.CL upper.CL
-      trt.1    2.273   0.125  18.250    2.029     2.52
-      trt.2    5.131   0.292  17.540    4.557     5.70
+      trt.1    2.273   0.125    18.2    2.029    2.517
+      trt.2    5.131   0.292    17.5    4.557    5.704
       
       ---------------------------
       Treatment Effect: 
       Contrast:  difference 
                     Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.2 - trt.1    2.858   0.324   8.820    2.223     3.49   <2e-16 ***
+      trt.2 - trt.1    2.858   0.324    8.82    2.223    3.493   <2e-16 ***
       ---
       Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -130,14 +131,14 @@
       ---------------------------
       Marginal Mean: 
             Estimate Std.Err Z Value lower.CL upper.CL
-      trt.1    2.273   0.125  18.250    2.029     2.52
-      trt.2    5.131   0.292  17.540    4.557     5.70
+      trt.1    2.273   0.125    18.2    2.029    2.517
+      trt.2    5.131   0.292    17.5    4.557    5.704
       
       ---------------------------
       Treatment Effect: 
       Contrast:  difference 
                     Estimate Std.Err Z Value lower.CL upper.CL Pr(>|z|)    
-      trt.2 - trt.1    2.858   0.324   8.820    2.223     3.49   <2e-16 ***
+      trt.2 - trt.1    2.858   0.324    8.82    2.223    3.493   <2e-16 ***
       ---
       Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 

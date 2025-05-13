@@ -163,6 +163,34 @@ test_that("Logic is correct", {
       outcome_model = outcome_model
     )
   )
+
+  wrong_randomization_table <- rbind(randomization_table, c(1, 1, 0.25, 0.25, 0.25, 0.25))
+  expect_error(
+    robin_ps(
+      data = df,
+      estimand = estimand,
+      design = list(
+        randomization_var_colnames = c("t", "subtype"),
+        randomization_table = wrong_randomization_table
+      ),
+      stratify_by = "s13",
+      outcome_model = outcome_model
+    )
+  )
+
+  expect_error(
+    robin_wt(
+      data = df,
+      estimand = estimand,
+      design = list(
+        randomization_var_colnames = c("t", "subtype"),
+        randomization_table = wrong_randomization_table
+      ),
+      estimated_propensity =  T,
+      outcome_model = outcome_model
+    )
+  )
+
 })
 
 test_that("Null check",{

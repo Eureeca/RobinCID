@@ -209,8 +209,10 @@ print.treatment_effect <- function(x, ...) {
   row.names(coef_mat) <- attr(x, "mm_name")
   stats::printCoefmat(
     coef_mat,
-    zap.ind = 3,
-    digits = 3
+    cs.ind = c(1,2,4,5),
+    tst.ind = 3,
+    digits = 3,
+    P.values = FALSE
   )
   cat("\n")
   cat("---------------------------\n")
@@ -237,7 +239,9 @@ print.treatment_effect <- function(x, ...) {
   row.names(coef_mat) <- attr(x, "name")
   stats::printCoefmat(
     coef_mat,
-    zap.ind = 3,
-    digits = 3
+    cs.ind = c(1,2,4,5),
+    tst.ind = 3,
+    digits = 3,
+    P.values = TRUE
   )
 }

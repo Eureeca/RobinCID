@@ -102,7 +102,7 @@ consistency_check <- function(data,
   assert_subset(rand_var, names(data))
 
   if(!is.null(rand_table)) {
-    if(!test_subset(treatment_names, names(rand_table))) {stop("Some treatments are not in the randomization_table.\nPlease revise the table.")}
+    if(!test_subset(treatment_names, names(rand_table))) {stop("The randomization table is incomplete\u2014some treatments are missing from randomization_table.\nPlease revise the table.")}
     if(!test_subset(rand_var, names(rand_table))) {stop("Some randomization variables in randomization_var_colnames are not in the randomization_table.\nPlease revise the table or drop the table and set estimated_propensity = TRUE.")}
     if(length(setdiff(names(rand_table),c(rand_var,as.character(treatment_names))))) {
       stop("The randomization_table contains additional variables that were not specified in randomization_var_colnames.\nPlease revise the table or drop the table and set estimated_propensity = TRUE.")
@@ -117,7 +117,7 @@ consistency_check <- function(data,
       # Check if all rows have the same assignment probabilities
       if (nrow(unique(prob_subset)) > 1) {
         stop(sprintf(
-          "Inconsistent assignment probabilities detected with randomization variables %s taking $s.\nPlease revise the randomization_table.",
+          "Inconsistent assignment probabilities detected with randomization variables {%s} taking {%s} in the randomization_table.\nPlease revise the table.",
           paste(rand_var, collapse = ", "),
           paste(combination, collapse = ", ")
         ))
@@ -146,12 +146,14 @@ consistency_check <- function(data,
         # Check if the probabilities for the treatments are the same across rows
         prob_values <- unique(strata_rand_table[as.character(treatments_for_compare)])
         if (nrow(prob_values) > 1) {
-          stop("Inconsistent treatment assignment probabilities in some post-strata.\nPlease check the randomization_table or stratify_by.")
+          stop("Treatment assignment probabilities for the arms being compared (as specified in randomization_table) must be constant within each level of stratify_by.\nPlease check the randomization_table or stratify_by.")
         }
       }
     }
   } else {
-    if(!is.null(stratify_by)){warning("The consistency of post stratification is not checked as randomization_table is not provided.")}
+    if(!is.null(stratify_by)){
+      warning("Assignment probabilities for the arms being compared must be constant within each level of stratify_by.\nThis check is skipped because randomization_table was not provided.")
+      }
   }
 }
 
