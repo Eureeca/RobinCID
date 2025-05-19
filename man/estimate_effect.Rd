@@ -32,6 +32,14 @@ estimate_effect(
 
 \item{stabilize}{(\code{logical}) whether to stabilize}
 }
+\value{
+A list of "estimate_effect" object with following elements:
+\itemize{
+\item \code{estimate}: estimate of the treatment effect.
+\item \code{inner_variance}: estimate of the covariance matrix.
+\item \code{method}: estimation method.
+}
+}
 \description{
 Compute Estimates and Covariance Matrix
 }

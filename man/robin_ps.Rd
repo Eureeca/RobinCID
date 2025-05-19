@@ -6,7 +6,7 @@
 \usage{
 robin_ps(
   data,
-  estimand = list(tx_colname = NULL, comparison = NULL),
+  estimand = list(tx_colname = NULL, tx_to_compare = NULL),
   design = list(randomization_var_colnames = NULL, randomization_table = NULL),
   stratify_by = NULL,
   outcome_model = list(formula = NULL, family = gaussian()),
@@ -21,7 +21,7 @@ robin_ps(
 \item{estimand}{(\code{list}) A list specifying the estimand, with two elements:
 \itemize{
 \item \code{tx_colname} (\code{character}): The column name of the treatment variable in \code{data}.
-\item \code{comparison} (\verb{character vector}): A vector specifying exactly two treatment levels to compare.
+\item \code{tx_to_compare} (\verb{character vector}): A vector specifying exactly two treatment levels to compare.
 }}
 
 \item{design}{(\code{list}) A list specifying randomization information, with two elements:
@@ -52,8 +52,11 @@ Ignored if using default contrasts.
 
 \item{...}{Additional arguments passed to \code{glm}.}
 }
+\value{
+A treatment_effect object.
+}
 \description{
-Provides robust inference methods via post stratification.
+Provides robust inference via post stratification.
 }
 \details{
 If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MASS::glm.nb} instead of \code{glm}.
@@ -62,14 +65,14 @@ If family is \code{MASS::negative.binomial(NA)}, the function will use \code{MAS
 data_sim <- RobinCID::example
 tx_colname <- "treatment"
 treatment_levels <- unique(data_sim[[tx_colname]])
-comparison <- c("trt.1", "trt.3")
+tx_to_compare <- c("trt.1", "trt.3")
 randomization_var_colnames <- c("t", "subtype")
 df <- data_sim[c("xb", "xc", tx_colname, randomization_var_colnames, "y")]
 randomization_table <- unique(data_sim[c(randomization_var_colnames, treatment_levels)])
 robin_ps(
   data = df,
   estimand = list(tx_colname = tx_colname,
-                  comparison = comparison),
+                  tx_to_compare = tx_to_compare),
   design = list(randomization_var_colnames = randomization_var_colnames,
                 randomization_table = randomization_table),
   stratify_by = NULL,

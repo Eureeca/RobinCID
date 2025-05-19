@@ -1,7 +1,7 @@
 #' @noRd
 robin_estimate <- function(data,
                            estimand = list(tx_colname = NULL,
-                                           comparison = NULL),
+                                           tx_to_compare = NULL),
                            design = list(randomization_var_colnames = NULL,
                                          randomization_table = NULL),
                            stratify_by, estimated_propensity,
@@ -13,7 +13,7 @@ robin_estimate <- function(data,
                            ...){
   validate_inputs(estimand, design, outcome_model, estimated_propensity, method)
   treatment <- estimand$tx_colname
-  treatments_for_compare <- estimand$comparison
+  treatments_for_compare <- estimand$tx_to_compare
 
   post_strata <- stratify_by
 
@@ -93,12 +93,12 @@ robin_estimate <- function(data,
 
 #' Inverse Probability Weighting Based Inference
 #'
-#' Provides robust inference methods via inverse probability weighting.
+#' Provides robust inference via inverse probability weighting.
 #'
 #' @param data (`data.frame`) A data frame containing the dataset.
 #' @param estimand (`list`) A list specifying the estimand, with two elements:
 #'   - `tx_colname` (`character`): The column name of the treatment variable in `data`.
-#'   - `comparison` (`character vector`): A vector specifying exactly two treatment levels to compare.
+#'   - `tx_to_compare` (`character vector`): A vector specifying exactly two treatment levels to compare.
 #' @param design (`list`) A list specifying randomization information, with two elements:
 #'   - `randomization_var_colnames` (`character vector`): Column names of randomization variables in `data`.
 #'   - `randomization_table` (`data.frame`, default: `NULL`): A data frame containing treatment assignment probabilities
@@ -121,18 +121,20 @@ robin_estimate <- function(data,
 #' If `family` is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #'
 #' @export
+#'
+#' @return A treatment_effect object.
 #' @examples
 #' data_sim <- RobinCID::example
 #' tx_colname <- "treatment"
 #' treatment_levels <- unique(data_sim[[tx_colname]])
-#' comparison <- c("trt.1", "trt.3")
+#' tx_to_compare <- c("trt.1", "trt.3")
 #' randomization_var_colnames <- c("t", "subtype")
 #' df <- data_sim[c("xb", "xc", tx_colname, randomization_var_colnames, "y")]
 #' randomization_table <- unique(data_sim[c(randomization_var_colnames, treatment_levels)])
 #' robin_wt(
 #'   data = df,
 #'   estimand = list(tx_colname = tx_colname,
-#'                   comparison = comparison),
+#'                   tx_to_compare = tx_to_compare),
 #'   design = list(randomization_var_colnames = randomization_var_colnames,
 #'                 randomization_table = randomization_table),
 #'   estimated_propensity = FALSE,
@@ -142,7 +144,7 @@ robin_estimate <- function(data,
 #'
 robin_wt <- function(data,
                      estimand = list(tx_colname = NULL,
-                                     comparison = NULL),
+                                     tx_to_compare = NULL),
                      design = list(randomization_var_colnames = NULL,
                                    randomization_table = NULL),
                      estimated_propensity = TRUE,
@@ -164,7 +166,7 @@ robin_wt <- function(data,
 
 #' Post-Stratification Based Inference
 #'
-#' Provides robust inference methods via post stratification.
+#' Provides robust inference via post stratification.
 #'
 #' @inheritParams robin_wt
 #' @param stratify_by (`character`, optional) The column name of the stratification variable in `data`.
@@ -172,18 +174,19 @@ robin_wt <- function(data,
 #' @details
 #' If family is `MASS::negative.binomial(NA)`, the function will use `MASS::glm.nb` instead of `glm`.
 #' @export
+#' @return A treatment_effect object.
 #' @examples
 #' data_sim <- RobinCID::example
 #' tx_colname <- "treatment"
 #' treatment_levels <- unique(data_sim[[tx_colname]])
-#' comparison <- c("trt.1", "trt.3")
+#' tx_to_compare <- c("trt.1", "trt.3")
 #' randomization_var_colnames <- c("t", "subtype")
 #' df <- data_sim[c("xb", "xc", tx_colname, randomization_var_colnames, "y")]
 #' randomization_table <- unique(data_sim[c(randomization_var_colnames, treatment_levels)])
 #' robin_ps(
 #'   data = df,
 #'   estimand = list(tx_colname = tx_colname,
-#'                   comparison = comparison),
+#'                   tx_to_compare = tx_to_compare),
 #'   design = list(randomization_var_colnames = randomization_var_colnames,
 #'                 randomization_table = randomization_table),
 #'   stratify_by = NULL,
@@ -192,7 +195,7 @@ robin_wt <- function(data,
 #' )
 robin_ps <- function(data,
                      estimand = list(tx_colname = NULL,
-                                     comparison = NULL),
+                                     tx_to_compare = NULL),
                      design = list(randomization_var_colnames = NULL,
                                    randomization_table = NULL),
                      stratify_by = NULL,

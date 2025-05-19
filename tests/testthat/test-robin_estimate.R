@@ -11,7 +11,7 @@ test_that("robin_wt works correctly", {
     robin_wt(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', 'trt.2')),
+                      tx_to_compare = c('trt.1', 'trt.2')),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       estimated_propensity = FALSE,
@@ -23,7 +23,7 @@ test_that("robin_wt works correctly", {
     robin_wt(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', 'trt.3')),
+                      tx_to_compare = c('trt.1', 'trt.3')),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       estimated_propensity = FALSE,
@@ -35,7 +35,7 @@ test_that("robin_wt works correctly", {
     robin_wt(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', 'trt.2')),
+                      tx_to_compare = c('trt.1', 'trt.2')),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       estimated_propensity = FALSE,
@@ -48,7 +48,7 @@ test_that("robin_wt works correctly", {
     robin_wt(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', 'trt.2')),
+                      tx_to_compare = c('trt.1', 'trt.2')),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       estimated_propensity = FALSE,
@@ -62,7 +62,7 @@ test_that("robin_wt works correctly", {
     robin_wt(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', 'trt.2')),
+                      tx_to_compare = c('trt.1', 'trt.2')),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       estimated_propensity = TRUE,
@@ -79,7 +79,7 @@ test_that("robin_wt works correctly under binomial()", {
     robin_wt(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', 'trt.2')),
+                      tx_to_compare = c('trt.1', 'trt.2')),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       estimated_propensity = FALSE,
@@ -94,7 +94,7 @@ test_that("robin_wt snapshot",{
     robin_wt(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', 'trt.2')),
+                      tx_to_compare = c('trt.1', 'trt.2')),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       estimated_propensity = FALSE,
@@ -107,7 +107,7 @@ test_that("robin_wt snapshot",{
     robin_wt(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', 'trt.2')),
+                      tx_to_compare = c('trt.1', 'trt.2')),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = NULL),
       estimated_propensity = TRUE,
@@ -122,7 +122,7 @@ test_that("robin_ps works correctly", {
     robin_ps(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', "trt.2")),
+                      tx_to_compare = c('trt.1', "trt.2")),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       stratify_by = NULL,
@@ -134,7 +134,7 @@ test_that("robin_ps works correctly", {
     robin_ps(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', "trt.3")),
+                      tx_to_compare = c('trt.1', "trt.3")),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       stratify_by = NULL,
@@ -146,7 +146,7 @@ test_that("robin_ps works correctly", {
     robin_ps(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', "trt.3")),
+                      tx_to_compare = c('trt.1', "trt.3")),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = NULL),
       stratify_by = "s13",
@@ -158,7 +158,7 @@ test_that("robin_ps works correctly", {
     robin_ps(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', "trt.2")),
+                      tx_to_compare = c('trt.1', "trt.2")),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       stratify_by = NULL,
@@ -175,7 +175,7 @@ test_that("robin_ps snapshot",{
     robin_ps(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', "trt.2")),
+                      tx_to_compare = c('trt.1', "trt.2")),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = NULL),
       stratify_by = "s12",
@@ -190,7 +190,7 @@ test_that("robin_ps snapshot2", {
     robin_ps(
       data = data_sim,
       estimand = list(tx_colname = tx_colname,
-                      comparison = c('trt.1', "trt.2")),
+                      tx_to_compare = c('trt.1', "trt.2")),
       design = list(randomization_var_colnames = randomization_var_colnames,
                     randomization_table = randomization_table),
       stratify_by = NULL,

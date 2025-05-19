@@ -9,6 +9,11 @@
 #' @param y Observed outcome
 #' @param treatment name of treatment
 #'
+#' @return A list of "estimate_effect" object with following elements:
+#' - `estimate`: estimate of the treatment effect.
+#' - `inner_variance`: estimate of the covariance matrix.
+#' - `method`: estimation method.
+#' @export
 estimate_effect <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strata, stabilize) {
   UseMethod("estimate_effect", ret)
 }

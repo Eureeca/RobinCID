@@ -11,7 +11,11 @@
 #' @param stabilize stabilize
 #' @param settings estimation setting
 #'
-#' @return Numeric matrix of counter factual prediction.
+#' @return A list of `prediction_cf` object with following elements:
+#' - `estimation`: = estimation,
+#' - `sample_size`: sample size of ECE population.
+#' - `fit.j`: fitted model for the treatment specified in tx_to_compare.
+#' - `fit.k`: fitted model for the treatment specified in tx_to_compare.
 #'
 #' @export
 predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compare, prob_mat, post_strata, data, stabilize, settings) {
@@ -52,13 +56,15 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
   estimation <- estimate_effect(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strata, stabilize=stabilize)
 
   structure(
-    .Data = estimation,
-    sample_size = ECE_size,
+    list(
+      estimation = estimation,
+      sample_size = ECE_size,
+      fit.j = fit.j,
+      fit.k = fit.k
+    ),
     predictions = ret,
     predictions_linear = pred_linear,
     response = y,
-    fit.j = fit.j,
-    fit.k = fit.k,
     prob_mat = prob_mat[treatments_for_compare],
     Z = attr(prob_mat, "Z"),
     post_strata = post_strata,

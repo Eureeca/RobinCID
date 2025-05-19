@@ -6,7 +6,7 @@
 \usage{
 robin_wt(
   data,
-  estimand = list(tx_colname = NULL, comparison = NULL),
+  estimand = list(tx_colname = NULL, tx_to_compare = NULL),
   design = list(randomization_var_colnames = NULL, randomization_table = NULL),
   estimated_propensity = TRUE,
   outcome_model = list(formula = NULL, family = gaussian()),
@@ -21,7 +21,7 @@ robin_wt(
 \item{estimand}{(\code{list}) A list specifying the estimand, with two elements:
 \itemize{
 \item \code{tx_colname} (\code{character}): The column name of the treatment variable in \code{data}.
-\item \code{comparison} (\verb{character vector}): A vector specifying exactly two treatment levels to compare.
+\item \code{tx_to_compare} (\verb{character vector}): A vector specifying exactly two treatment levels to compare.
 }}
 
 \item{design}{(\code{list}) A list specifying randomization information, with two elements:
@@ -51,8 +51,11 @@ Ignored if using default contrasts.
 
 \item{...}{Additional arguments passed to \code{glm}.}
 }
+\value{
+A treatment_effect object.
+}
 \description{
-Provides robust inference methods via inverse probability weighting.
+Provides robust inference via inverse probability weighting.
 }
 \details{
 If \code{randomization_table} is provided, it must include columns corresponding to \code{randomization_var_colnames},
@@ -64,14 +67,14 @@ If \code{family} is \code{MASS::negative.binomial(NA)}, the function will use \c
 data_sim <- RobinCID::example
 tx_colname <- "treatment"
 treatment_levels <- unique(data_sim[[tx_colname]])
-comparison <- c("trt.1", "trt.3")
+tx_to_compare <- c("trt.1", "trt.3")
 randomization_var_colnames <- c("t", "subtype")
 df <- data_sim[c("xb", "xc", tx_colname, randomization_var_colnames, "y")]
 randomization_table <- unique(data_sim[c(randomization_var_colnames, treatment_levels)])
 robin_wt(
   data = df,
   estimand = list(tx_colname = tx_colname,
-                  comparison = comparison),
+                  tx_to_compare = tx_to_compare),
   design = list(randomization_var_colnames = randomization_var_colnames,
                 randomization_table = randomization_table),
   estimated_propensity = FALSE,

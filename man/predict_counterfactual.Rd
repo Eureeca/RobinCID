@@ -36,7 +36,13 @@ predict_counterfactual(
 \item{settings}{estimation setting}
 }
 \value{
-Numeric matrix of counter factual prediction.
+A list of \code{prediction_cf} object with following elements:
+\itemize{
+\item \code{estimation}: = estimation,
+\item \code{sample_size}: sample size of ECE population.
+\item \code{fit.j}: fitted model for the treatment specified in tx_to_compare.
+\item \code{fit.k}: fitted model for the treatment specified in tx_to_compare.
+}
 }
 \description{
 Obtain counterfactual prediction of a fit.

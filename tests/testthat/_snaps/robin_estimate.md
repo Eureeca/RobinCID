@@ -1,10 +1,11 @@
 # robin_wt snapshot
 
     Code
-      robin_wt(data = data_sim, estimand = list(tx_colname = tx_colname, comparison = c(
-        "trt.1", "trt.2")), design = list(randomization_var_colnames = randomization_var_colnames,
-        randomization_table = randomization_table), estimated_propensity = FALSE,
-      outcome_model = list(formula = y ~ xb + xc, family = gaussian()))
+      robin_wt(data = data_sim, estimand = list(tx_colname = tx_colname,
+        tx_to_compare = c("trt.1", "trt.2")), design = list(
+        randomization_var_colnames = randomization_var_colnames, randomization_table = randomization_table),
+      estimated_propensity = FALSE, outcome_model = list(formula = y ~ xb + xc,
+      family = gaussian()))
     Output
       Method:  Inverse Probability Weighting 
       Model :  y ~ xb + xc 
@@ -36,10 +37,11 @@
 ---
 
     Code
-      robin_wt(data = data_sim, estimand = list(tx_colname = tx_colname, comparison = c(
-        "trt.1", "trt.2")), design = list(randomization_var_colnames = randomization_var_colnames,
-        randomization_table = NULL), estimated_propensity = TRUE, outcome_model = list(
-        formula = y ~ xb + xc, family = gaussian()))
+      robin_wt(data = data_sim, estimand = list(tx_colname = tx_colname,
+        tx_to_compare = c("trt.1", "trt.2")), design = list(
+        randomization_var_colnames = randomization_var_colnames, randomization_table = NULL),
+      estimated_propensity = TRUE, outcome_model = list(formula = y ~ xb + xc,
+      family = gaussian()))
     Output
       Method:  Inverse Probability Weighting 
       Model :  y ~ xb + xc 
@@ -72,10 +74,10 @@
 # robin_ps snapshot
 
     Code
-      robin_ps(data = data_sim, estimand = list(tx_colname = tx_colname, comparison = c(
-        "trt.1", "trt.2")), design = list(randomization_var_colnames = randomization_var_colnames,
-        randomization_table = NULL), stratify_by = "s12", outcome_model = list(
-        formula = y ~ xb + xc, family = gaussian()))
+      robin_ps(data = data_sim, estimand = list(tx_colname = tx_colname,
+        tx_to_compare = c("trt.1", "trt.2")), design = list(
+        randomization_var_colnames = randomization_var_colnames, randomization_table = NULL),
+      stratify_by = "s12", outcome_model = list(formula = y ~ xb + xc, family = gaussian()))
     Condition
       Warning in `consistency_check()`:
       Assignment probabilities for the arms being compared must be constant within each level of stratify_by.
@@ -109,10 +111,10 @@
 # robin_ps snapshot2
 
     Code
-      robin_ps(data = data_sim, estimand = list(tx_colname = tx_colname, comparison = c(
-        "trt.1", "trt.2")), design = list(randomization_var_colnames = randomization_var_colnames,
-        randomization_table = randomization_table), stratify_by = NULL,
-      outcome_model = list(formula = y ~ xb + xc, family = gaussian()))
+      robin_ps(data = data_sim, estimand = list(tx_colname = tx_colname,
+        tx_to_compare = c("trt.1", "trt.2")), design = list(
+        randomization_var_colnames = randomization_var_colnames, randomization_table = randomization_table),
+      stratify_by = NULL, outcome_model = list(formula = y ~ xb + xc, family = gaussian()))
     Output
       Method:  Post Stratification 
       Post stratification is done by the joint levels of the randomization variables specified by randomization_var_colnames.

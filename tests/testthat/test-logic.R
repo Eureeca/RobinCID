@@ -1,6 +1,6 @@
 complete_df <- RobinCID::example
 estimand <- list(tx_colname = "treatment",
-                 comparison = c("trt.1", "trt.2"))
+                 tx_to_compare = c("trt.1", "trt.2"))
 randomization_var_colnames <- c("t", "subtype")
 randomization_table <- unique(complete_df[c(randomization_var_colnames, "trt.1", "trt.2", "trt.3", "trt.4")])
 

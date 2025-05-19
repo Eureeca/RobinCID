@@ -5,7 +5,7 @@
 .check.null <- function(estimand, design, outcome_model){
   fields <- list(
     "estimand$tx_colname" = estimand$tx_colname,
-    "estimand$comparison" = estimand$comparison,
+    "estimand$tx_to_compare" = estimand$tx_to_compare,
     "design$randomization_var_colnames" = design$randomization_var_colnames,
     "outcome_model$formula" = outcome_model$formula
   )
@@ -90,7 +90,7 @@ consistency_check <- function(data,
                                             randomization_table = NULL),
                               stratify_by = NULL){
   treatment <- estimand$tx_colname
-  treatments_for_compare <- estimand$comparison
+  treatments_for_compare <- estimand$tx_to_compare
 
   rand_table <- design$randomization_table
   rand_var <- design$randomization_var_colnames
@@ -117,9 +117,10 @@ consistency_check <- function(data,
       # Check if all rows have the same assignment probabilities
       if (nrow(unique(prob_subset)) > 1) {
         stop(sprintf(
-          "Inconsistent assignment probabilities detected with randomization variables {%s} taking {%s} in the randomization_table.\nPlease revise the table.",
+          "Multiple entries in the randomization_table for {%s} = {%s}.\n Please revise the table and provide unique randomization probabilities for each combination of {%s} appearing in the data.",
           paste(rand_var, collapse = ", "),
-          paste(combination, collapse = ", ")
+          paste(combination, collapse = ", "),
+          paste(rand_var, collapse = ", ")
         ))
       }
     }
@@ -146,7 +147,7 @@ consistency_check <- function(data,
         # Check if the probabilities for the treatments are the same across rows
         prob_values <- unique(strata_rand_table[as.character(treatments_for_compare)])
         if (nrow(prob_values) > 1) {
-          stop("Treatment assignment probabilities for the arms being compared (as specified in randomization_table) must be constant within each level of stratify_by.\nPlease check the randomization_table or stratify_by.")
+          stop("Treatment assignment probabilities for the arms being compared (as specified in randomization_table) must be constant within each level of stratify_by.\nPlease revise the randomization_table for accuracy or change the stratify_by variable.")
         }
       }
     }
@@ -167,6 +168,7 @@ consistency_check <- function(data,
 #' @param method estimation method.
 #' @param estimated_propensity Whether to use estimated propensity score.
 #' @param stratify_by The column name of stratification variable in `data`.
+#' @return A new `data` with columns of the treatment assignment probability.
 #' @export
 #' @details
 #' `design` has two elements: `randomization_var_colnames` (`vector`) and `randomization_table` (`data.frame`)
@@ -180,7 +182,7 @@ assign_prob_and_strata <- function(data,
                                    stratify_by = NULL
                                    ) {
   treatment <- estimand$tx_colname
-  treatments_for_compare <- estimand$comparison
+  treatments_for_compare <- estimand$tx_to_compare
 
   if(is.null(stratify_by)){
     Z <- design$randomization_var_colnames

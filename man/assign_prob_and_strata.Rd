@@ -26,6 +26,9 @@ assign_prob_and_strata(
 
 \item{stratify_by}{The column name of stratification variable in \code{data}.}
 }
+\value{
+A new \code{data} with columns of the treatment assignment probability.
+}
 \description{
 Assign Probability according to Design
 }
