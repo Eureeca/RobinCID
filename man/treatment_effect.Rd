@@ -28,6 +28,18 @@ odds_ratio(object, ...)
 
 \item{...}{Additional arguments passed to \code{glm}}
 }
+\value{
+A list of \code{treatment_effect} object with following elements:
+\itemize{
+\item \code{mm_name}: name of the treatments to compare.
+\item \code{marginal_mean}: estimate of the treatment effect.
+\item \code{mmvariance}: estimate of the covariance matrix.
+\item \code{trt_effect}: estimate of the contrast.
+\item \code{variance}: estimate of the variance of contrast.
+\item \code{contrast}: name of the contrast function.
+\item \code{settings}: estimation settings.
+}
+}
 \description{
 Obtain treatment effect and variance from counter-factual prediction
 }

@@ -11,7 +11,7 @@ estimate_effect(
   treatments_for_compare,
   data,
   prob_mat,
-  post_strat,
+  post_strata,
   stabilize
 )
 }
@@ -28,9 +28,17 @@ estimate_effect(
 
 \item{prob_mat}{(\code{data.frame}) treatment assignment probability}
 
-\item{post_strat}{(\code{character}) A string name of post-stratification variable}
+\item{post_strata}{(\code{character}) A string name of post-stratification variable}
 
 \item{stabilize}{(\code{logical}) whether to stabilize}
+}
+\value{
+A list of "estimate_effect" object with following elements:
+\itemize{
+\item \code{estimate}: estimate of the treatment effect.
+\item \code{inner_variance}: estimate of the covariance matrix.
+\item \code{method}: estimation method.
+}
 }
 \description{
 Compute Estimates and Covariance Matrix

@@ -8,60 +8,75 @@
 #' @param alpha Nominal level
 #' @param ... Additional arguments passed to `glm`
 #'
+#' @return A list of `treatment_effect` object with following elements:
+#' - `mm_name`: name of the treatments to compare.
+#' - `marginal_mean`: estimate of the treatment effect.
+#' - `mmvariance`: estimate of the covariance matrix.
+#' - `trt_effect`: estimate of the contrast.
+#' - `variance`: estimate of the variance of contrast.
+#' - `contrast`: name of the contrast function.
+#' - `settings`: estimation settings.
+#'
 #' @export
-treatment_effect <- function(object, pair, eff_measure, eff_jacobian, alpha, ...) {
+treatment_effect <- function(object, pair, eff_measure, eff_jacobian, alpha,...) {
   UseMethod("treatment_effect", object)
 }
 
 #' @export
 treatment_effect.prediction_cf <- function(
-    object, pair = names(object), eff_measure, eff_jacobian, alpha, ...) {
+    object, pair = names(object), eff_measure, eff_jacobian, alpha,...) {
 
   checkmate::assert_function(eff_measure)
   contrast_name = deparse(substitute(eff_measure))
   contrast = ifelse(contrast_name=="h_diff", "difference",
-                    ifelse(contrast_name=="h_ratio","ratio",
+                    ifelse(contrast_name=="h_ratio", "ratio",
                            ifelse(contrast_name=="h_odds_ratio", "odds ratio", "customized")))
+  estimate <- object$estimation
   if (missing(pair)) {
-    pair <- names(object$estimate)
+    pair <- names(estimate$estimate)
   }
   checkmate::assert_vector(pair)
   checkmate::assert(
-    checkmate::test_subset(pair, names(object$estimate)),
-    checkmate::test_integerish(pair, lower = 1L, upper = length(object$estimate))
+    checkmate::test_subset(pair, names(estimate$estimate)),
+    checkmate::test_integerish(pair, lower = 1L, upper = length(estimate$estimate))
   )
   if (checkmate::test_integerish(pair)) {
-    pair <- names(object$estimate)[pair]
+    pair <- names(estimate$estimate)[pair]
   }
-  trt_effect <- unname(eff_measure(object$estimate[pair]))
+  trt_effect <- unname(eff_measure(estimate$estimate[pair]))
 
-  inner_variance <- object$inner_variance
+  inner_variance <- estimate$inner_variance
   if (missing(eff_jacobian)) {
-    trt_jac <- numDeriv::jacobian(eff_measure, object[pair])
+    trt_jac <- numDeriv::jacobian(eff_measure, estimate[pair])
   } else {
     assert_function(eff_jacobian)
-    trt_jac <- eff_jacobian(object$estimate[pair])
+    trt_jac <- eff_jacobian(estimate$estimate[pair])
   }
   trt_var <- trt_jac %*% inner_variance %*% t(trt_jac)
 
 
   pair_names <- outer(pair, pair, FUN = paste, sep = " - ")
   structure(
-    .Data = trt_effect,
-    mm_name = pair,
+    list(
+      mm_name = pair,
+      marginal_mean = estimate$estimate,
+      mmvariance = estimate$inner_variance,
+      trt_effect = trt_effect,
+      variance = diag(trt_var),
+      contrast = contrast,
+      settings = attr(object, "settings")
+    ),
     name = pair_names[lower.tri(pair_names)],
-    marginal_mean = object$estimate,
-    fit.j = attr(object, "fit.j"),
-    mmvariance = object$inner_variance,
+    fit.j = object$fit.j,
     treatment = attr(object, "treatment_name"),
-    variance = diag(trt_var),
     prob_mat = attr(object, "prob_mat"),
-    sample_size = attr(object, "sample_size"),
+    Z = attr(object, "Z"),
+    sample_size = object$sample_size,
     alpha = alpha,
-    contrast = contrast,
-    class = "treatment_effect",
-    post_strat = object$post_strat,
-    method = object$method
+    post_strata = attr(object, "post_strata"),
+    data = attr(object, "data"),
+    method = estimate$method,
+    class = "treatment_effect"
   )
 }
 
@@ -156,37 +171,30 @@ h_lower_tri_idx <- function(n) {
 #' @export
 print.treatment_effect <- function(x, ...) {
   alpha <- attr(x,"alpha")
-  data <- find_data(attr(x, "fit.j"))
-  post_strat <- attr(x, "post_strat")
-  prob_mat <- round(attr(x, "prob_mat"),3)
-  row_counts <- apply(prob_mat, 1, function(row) paste(row, collapse = ", "))
-  unique_counts <- table(row_counts)
-  proportions <- round(unique_counts / nrow(prob_mat),2)
+  data <- attr(x, "data")
+  post_strata <- attr(x, "post_strata")
+  prob_mat <- round(attr(x, "prob_mat"), 2)
+  settings <- x$settings
+  stratify_by <- settings$stratify_by
+  Z <- attr(x, "Z")
+
 
   cat("Method: ", attr(x, "method"), "\n")
+  if(settings$method=="ps"){
+    if(!is.null(stratify_by)) {
+      cat(paste0("Post stratification is done by variable ", stratify_by, " specified by stratify_by.\n"))
+          } else {cat(paste0("Post stratification is done by the joint levels of the randomization variables specified by randomization_var_colnames.\n"))}
+  }
   cat("Model : ", deparse(as.formula(attr(x, "fit"))), "\n")
   cat("Family: ", attr(x, "fit")$family[[1]], "\n")
 
-  cat("Randomization Probabilities (among the entire concurrent and eligible (ECE) samples):", "\n")
-  cat("  Total Sample Size: ",attr(x,"sample_size"),"\n")
-  if(is.null(post_strat)){
-  prob_tab <- matrix(
-    c(names(proportions),
-      unique_counts,
-      proportions),
-    nrow = length(names(proportions))
-  )
-  colnames(prob_tab) <- c("Unique.Level", "Sample.Size","Proportion")
-  } else {
-    prob_tab <- matrix(
-      c(unique(data[[post_strat]]),
-        names(proportions),
-        unique_counts,
-        proportions),
-      nrow = length(names(proportions))
-    )
-    colnames(prob_tab) <- c("Stratum", "Unique.Level", "Sample.Size","Proportion")
-  }
+  if(settings$estimated_propensity) {cat("Estimated Propensity Score is used.\n")}
+  p <- ""
+  if(settings$method == "wt" & settings$estimated_propensity) {
+    p <- "Estimated "
+  } else if(settings$method=="ps" & (!is.null(stratify_by) | is.null(stratify_by) & !settings$rand_table)) p="Estimated "
+  cat(paste0(p,"Randomization Probabilities (among the entire concurrent and eligible (ECE) population):"), "\n")
+  prob_tab <- prob_table_generate(data, post_strata, prob_mat, Z)
   row.names(prob_tab) <- 1:nrow(prob_tab)
   print(prob_tab)
   cat("\n")
@@ -194,56 +202,59 @@ print.treatment_effect <- function(x, ...) {
   cat("---------------------------\n")
   cat("Marginal Mean: \n")
 
-  mm = as.numeric(attr(x, "marginal_mean"))
-  trt_sd <- sqrt(diag(attr(x, "mmvariance")))
+  mm <- as.numeric(x$marginal_mean)
+  trt_sd <- sqrt(diag(x$mmvariance))
   z_value <- mm / trt_sd
-  p <- 2 * pnorm(abs(z_value), lower.tail = FALSE)
-  ci.lb = mm - qnorm(1-alpha/2) * trt_sd
-  ci.ub = mm + qnorm(1-alpha/2) * trt_sd
+  ci.lb <- mm - qnorm(1-alpha/2) * trt_sd
+  ci.ub <- mm + qnorm(1-alpha/2) * trt_sd
   coef_mat <- matrix(
     c(
       mm,
       trt_sd,
       z_value,
       ci.lb,
-      ci.ub,
-      p
+      ci.ub
     ),
     nrow = length(mm)
   )
-  colnames(coef_mat) <- c("Estimate", "Std.Err","Z Value", "lower.CL", "upper.CL", "Pr(>|z|)")
-  row.names(coef_mat) <- attr(x, "mm_name")
+  colnames(coef_mat) <- c("Estimate", "Std.Err","Z Value", "lower.CL", "upper.CL")
+  row.names(coef_mat) <- x$mm_name
   stats::printCoefmat(
     coef_mat,
-    zap.ind = 3,
-    digits = 3
+    cs.ind = c(1,2,4,5),
+    tst.ind = 3,
+    digits = 3,
+    P.values = FALSE
   )
   cat("\n")
   cat("---------------------------\n")
   cat("Treatment Effect: \n")
-  cat("Contrast: ", attr(x, "contrast"),"\n")
+  cat("Contrast: ", x$contrast,"\n")
 
-  trt_sd <- sqrt(attr(x, "variance"))
-  z_value <- as.numeric(x) / trt_sd
-  ci.lb = x - qnorm(1-alpha/2) * trt_sd
-  ci.ub = x + qnorm(1-alpha/2) * trt_sd
+  trt_sd <- sqrt(x$variance)
+  trt_effect <- x$trt_effect
+  z_value <- as.numeric(trt_effect) / trt_sd
+  ci.lb <- trt_effect - qnorm(1-alpha/2) * trt_sd
+  ci.ub <- trt_effect + qnorm(1-alpha/2) * trt_sd
   p <- 2 * pnorm(abs(z_value), lower.tail = FALSE)
   coef_mat <- matrix(
     c(
-      x,
+      trt_effect,
       trt_sd,
       z_value,
       ci.lb,
       ci.ub,
       p
     ),
-    nrow = length(x)
+    nrow = length(trt_effect)
   )
   colnames(coef_mat) <- c("Estimate", "Std.Err", "Z Value","lower.CL", "upper.CL",  "Pr(>|z|)")
   row.names(coef_mat) <- attr(x, "name")
   stats::printCoefmat(
     coef_mat,
-    zap.ind = 3,
-    digits = 3
+    cs.ind = c(1,2,4,5),
+    tst.ind = 3,
+    digits = 3,
+    P.values = TRUE
   )
 }

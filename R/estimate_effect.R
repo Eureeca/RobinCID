@@ -4,17 +4,22 @@
 #' @param treatments_for_compare description
 #' @param data (`data.frame`) data
 #' @param prob_mat (`data.frame`) treatment assignment probability
-#' @param post_strat (`character`) A string name of post-stratification variable
+#' @param post_strata (`character`) A string name of post-stratification variable
 #' @param stabilize (`logical`) whether to stabilize
 #' @param y Observed outcome
 #' @param treatment name of treatment
 #'
-estimate_effect <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strat, stabilize) {
+#' @return A list of "estimate_effect" object with following elements:
+#' - `estimate`: estimate of the treatment effect.
+#' - `inner_variance`: estimate of the covariance matrix.
+#' - `method`: estimation method.
+#' @export
+estimate_effect <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strata, stabilize) {
   UseMethod("estimate_effect", ret)
 }
 
 #' @export
-estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strat, stabilize){
+estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strata, stabilize){
 
   pij <- prob_mat[[treatments_for_compare[1]]]
   pik <- prob_mat[[treatments_for_compare[2]]]
@@ -27,43 +32,46 @@ estimate_effect.wt <- function(ret, y, treatment, treatments_for_compare, data, 
   weightj <- if (stabilize) sum(A.j / pij) else njk
   weightk <- if (stabilize) sum(A.k / pik) else njk
 
-  pred.jk = ret[, 1]
-  pred.kj = ret[, 2]
+  pred.jk <- ret[, 1]
+  pred.kj <- ret[, 2]
 
   theta.jk <- sum(A.j * (y - pred.jk) / pij) / weightj + sum(pred.jk) / njk
   theta.kj <- sum(A.k * (y - pred.kj) / pik) / weightk + sum(pred.kj) / njk
 
-  delta.jk = sum(A.j * (y-pred.jk) / pij) / njk
-  delta.kj = sum(A.k * (y-pred.kj) / pik) / njk
+  delta.jk <- sum(A.j * (y - pred.jk) / pij) / njk
+  delta.kj <- sum(A.k * (y - pred.kj) / pik) / njk
 
-  q.jk.j = cov((y-pred.jk)[A.j==1], pred.jk[A.j==1])
-  q.kj.k = cov((y-pred.kj)[A.k==1], pred.kj[A.k==1])
-  q.jk.k = cov((y-pred.jk)[A.k==1], pred.jk[A.k==1])
-  q.kj.j = cov((y-pred.kj)[A.j==1], pred.kj[A.j==1])
-  q.jk = cov(pred.jk, pred.kj)
+  q.jk.j <- sum(A.j * y * pred.jk / pij) / njk - sum(A.j * y  / pij) / njk * sum(A.j * pred.jk / pij) / njk
+  q.kj.k <- sum(A.k * y * pred.kj / pik) / njk - sum(A.k * y  / pik) / njk * sum(A.k * pred.kj / pik) / njk
+  q.jk.k <- sum(A.k * y * pred.jk / pik) / njk - sum(A.k * y  / pik) / njk * sum(A.k * pred.jk / pik) / njk
+  q.kj.j <- sum(A.j * y * pred.kj / pij) / njk - sum(A.j * y  / pij) / njk * sum(A.j * pred.kj / pij) / njk
 
-  sigma.jk = var(pred.jk)
-  sigma.kj = var(pred.kj)
 
-  lambda.jk = 2 * q.jk.j + sigma.jk
-  lambda.kj = 2 * q.kj.k + sigma.kj
+  q.jk <- 1/2 * (sum(A.j * pred.jk * pred.kj / pij) / njk - sum(A.j * pred.jk / pij) / njk * sum(A.j * pred.kj / pij) / njk) +
+    1/2 * (sum(A.k * pred.jk * pred.kj / pik) / njk - sum(A.k * pred.jk / pik) / njk * sum(A.k * pred.kj / pik) / njk)
 
-  c.jk = q.kj.j + q.jk.k + q.jk
+  sigma.jk <- sum(A.j * pred.jk^2 / pij) / njk - (sum(A.j * pred.jk / pij) / njk)^2
+  sigma.kj <- sum(A.k * pred.kj^2 / pik) / njk - (sum(A.k * pred.kj / pik) / njk)^2
 
-  sigma.11 = sum(A.j*(y-pred.jk - delta.jk)^2/pij^2)/njk + lambda.jk
-  sigma.22 = sum(A.k*(y-pred.kj - delta.kj)^2/pik^2)/njk + lambda.kj
-  sigma.12 = c.jk
+  lambda.jk <- 2 * q.jk.j - sigma.jk
+  lambda.kj <- 2 * q.kj.k - sigma.kj
 
-  inner_variance = matrix(c(sigma.11, sigma.12,sigma.12,sigma.22),ncol = 2, nrow = 2) / njk
-  estimate = c(theta.jk, theta.kj)
-  names(estimate) = treatments_for_compare
+  c.jk <- q.kj.j + q.jk.k - q.jk
+
+  sigma.11 <- sum(A.j * (y - pred.jk - delta.jk)^2 / pij^2) / njk + lambda.jk
+  sigma.22 <- sum(A.k * (y - pred.kj - delta.kj)^2 / pik^2) / njk + lambda.kj
+  sigma.12 <- c.jk
+
+  inner_variance <- matrix(c(sigma.11, sigma.12,sigma.12,sigma.22),ncol = 2, nrow = 2) / njk
+  estimate <- c(theta.jk, theta.kj)
+  names(estimate) <- treatments_for_compare
 
   list(estimate = estimate, inner_variance = inner_variance,
-       method="Inverse Probability Weighting")
+       method = "Inverse Probability Weighting")
 }
 
 #' @export
-estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strat, stabilize) {
+estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, prob_mat, post_strata, stabilize) {
 
 
   njk <- nrow(data)
@@ -79,46 +87,52 @@ estimate_effect.ps <- function(ret, y, treatment, treatments_for_compare, data, 
 
   temp_df <- data.frame(pij = pij, pik = pik, A.j = A.j, A.k = A.k, pred.j = pred.jk, pred.k = pred.kj, y = y)
 
-  if(is.null(post_strat)){
+  if(is.null(post_strata)){
     unique_pairs <- unique(temp_df[, c("pij", "pik")])
     n_pairs <- nrow(unique_pairs)
     strata <- 1:n_pairs
-    temp_df$post_strat <- match(interaction(temp_df$pij, temp_df$pik), interaction(unique_pairs$pij, unique_pairs$pik))
+    temp_df$post_strata <- match(interaction(temp_df$pij, temp_df$pik), interaction(unique_pairs$pij, unique_pairs$pik))
   } else {
-    n_pairs <- length(unique(data[[post_strat]]))
-    temp_df$post_strat <- data[[post_strat]]
-    strata <- unique(data[[post_strat]])
+    n_pairs <- length(unique(data[[post_strata]]))
+    temp_df$post_strata <- data[[post_strata]]
+    strata <- unique(data[[post_strata]])
   }
   thetas.j <- thetas.k <- sigma11 <- sigma22 <- sigma12 <- Y.bar.j <- Y.bar.k <- ns <- numeric(n_pairs)
 
   for (i in seq_len(n_pairs)) {
-    pair_data <- temp_df[temp_df$post_strat==strata[i], ]
+    pair_data <- temp_df[temp_df$post_strata==strata[i], ]
+
+    A.j <- pair_data$A.j
+    A.k <- pair_data$A.k
+    y <- pair_data$y
+    pred.j <- pair_data$pred.j
+    pred.k <- pair_data$pred.k
 
     n.jk <- nrow(pair_data)
 
-    theta.j <- sum(pair_data$A.j * (pair_data$y - pair_data$pred.j)) / sum(pair_data$A.j) + mean(pair_data$pred.j)
-    theta.k <- sum(pair_data$A.k * (pair_data$y - pair_data$pred.k)) / sum(pair_data$A.k) + mean(pair_data$pred.k)
+    theta.j <- sum(A.j * (y - pred.j)) / sum(A.j) + mean(pred.j)
+    theta.k <- sum(A.k * (y - pred.k)) / sum(A.k) + mean(pred.k)
 
-    y.bar.j <- mean(pair_data$y[pair_data$A.j])
-    y.bar.k <- mean(pair_data$y[pair_data$A.k])
+    y.bar.j <- mean(y[A.j])
+    y.bar.k <- mean(y[A.k])
 
-    pij.hat <- mean(pair_data$A.j)
-    pik.hat <- mean(pair_data$A.k)
+    pij.hat <- mean(A.j)
+    pik.hat <- mean(A.k)
 
-    sigma.jk <- var(pair_data$pred.j)
-    sigma.kj <- var(pair_data$pred.k)
+    sigma.jk <- var(pred.j)
+    sigma.kj <- var(pred.k)
 
-    q.jk.j <- cov((pair_data$y - pair_data$pred.j)[pair_data$A.j], pair_data$pred.j[pair_data$A.j])
-    q.kj.k <- cov((pair_data$y - pair_data$pred.k)[pair_data$A.k], pair_data$pred.k[pair_data$A.k])
-    q.jk.k <- cov((pair_data$y - pair_data$pred.j)[pair_data$A.k], pair_data$pred.j[pair_data$A.k])
-    q.kj.j <- cov((pair_data$y - pair_data$pred.k)[pair_data$A.j], pair_data$pred.k[pair_data$A.j])
-    q.jk <- cov(pair_data$pred.j, pair_data$pred.k)
+    q.jk.j <- cov(y[A.j], pred.j[A.j])
+    q.kj.k <- cov(y[A.k], pred.k[A.k])
+    q.jk.k <- cov(y[A.k], pred.j[A.k])
+    q.kj.j <- cov(y[A.j], pred.k[A.j])
+    q.jk <- cov(pred.j, pred.k)
 
-    lambda.jk <- 2 * q.jk.j + sigma.jk
-    lambda.kj <- 2 * q.kj.k + sigma.kj
-    c.jk <- q.kj.j + q.jk.k + q.jk
-    tau.jk <- var(pair_data$y[pair_data$A.j] - pair_data$pred.j[pair_data$A.j])
-    tau.kj <- var(pair_data$y[pair_data$A.k] - pair_data$pred.k[pair_data$A.k])
+    lambda.jk <- 2 * q.jk.j - sigma.jk
+    lambda.kj <- 2 * q.kj.k - sigma.kj
+    c.jk <- q.kj.j + q.jk.k - q.jk
+    tau.jk <- var(y[A.j] - pred.j[A.j])
+    tau.kj <- var(y[A.k] - pred.k[A.k])
     sigma.11 <- tau.jk / pij.hat + lambda.jk
     sigma.22 <- tau.kj / pik.hat + lambda.kj
     sigma.12 <- c.jk

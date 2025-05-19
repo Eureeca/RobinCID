@@ -17,6 +17,13 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Yuhan Qian \email{yhqian@uw.edu}
+\strong{Maintainer}: Yuhan Qian \email{yhqian@uw.edu} [copyright holder]
+
+Authors:
+\itemize{
+  \item Ting Ye
+  \item Yanyao Yi
+  \item Marlena Bannick
+}
 
 }

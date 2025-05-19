@@ -10,10 +10,10 @@ predict_counterfactual(
   treatment,
   treatments_for_compare,
   prob_mat,
-  post_strat,
+  post_strata,
   data,
   stabilize,
-  method
+  settings
 )
 }
 \arguments{
@@ -27,16 +27,22 @@ predict_counterfactual(
 
 \item{prob_mat}{(\code{data.frame}) treatment assignment probabilities}
 
-\item{post_strat}{(\code{character}) A string name of post-stratification variable.}
+\item{post_strata}{(\code{character}) A string name of post-stratification variable.}
 
 \item{data}{(\code{data.frame}) raw dataset.}
 
 \item{stabilize}{stabilize}
 
-\item{method}{estimation method}
+\item{settings}{estimation setting}
 }
 \value{
-Numeric matrix of counter factual prediction.
+A list of \code{prediction_cf} object with following elements:
+\itemize{
+\item \code{estimation}: = estimation,
+\item \code{sample_size}: sample size of ECE population.
+\item \code{fit.j}: fitted model for the treatment specified in tx_to_compare.
+\item \code{fit.k}: fitted model for the treatment specified in tx_to_compare.
+}
 }
 \description{
 Obtain counterfactual prediction of a fit.
