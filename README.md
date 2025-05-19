@@ -22,7 +22,7 @@ You can install the development version of RobinCID from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("Eureeca/RobinCID@new_structure")
+devtools::install_github("Eureeca/RobinCID")
 ```
 
 ## Publications
