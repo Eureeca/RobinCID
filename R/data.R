@@ -2,7 +2,7 @@
 #'
 #' This dataset is generated based on the first three enrollment windows outlined in Figure 1(a) in our paper.
 #'
-#' @format A data frame with 500 rows and 8 columns:
+#' @format A data frame with 500 rows and 17 columns:
 #'   \describe{
 #'     \item{xc, xb, subtype}{The covariates.}
 #'     \item{t, substudy}{The enrollment window and substudy assignment}

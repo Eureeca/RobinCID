@@ -1,5 +1,6 @@
-## R CMD check results
+## Resubmission
+This is a resubmission. In this version I have:
 
-0 errors | 0 warnings | 1 note
+* Written TRUE and FALSE instead of T and F.
 
-* This is a new release.
+* Added \value to find_data.Rd and prediction_cf_methods.Rd files.

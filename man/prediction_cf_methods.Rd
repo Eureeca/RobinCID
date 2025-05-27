@@ -10,6 +10,9 @@
 \arguments{
 \item{x}{(\code{prediction_cf})\cr the obtained counter-factual prediction object.}
 }
+\value{
+No return value, called for side effects
+}
 \description{
 S3 Methods for \code{prediction_cf}
 }

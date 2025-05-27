@@ -2,6 +2,7 @@
 #'
 #' @param fit A fit object.
 #' @param ... Additional arguments.
+#' @return A data frame used in the fit.
 find_data <- function(fit, ...) {
   UseMethod("find_data")
 }

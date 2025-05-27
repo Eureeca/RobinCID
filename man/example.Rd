@@ -5,7 +5,7 @@
 \alias{example}
 \title{Trial Data}
 \format{
-A data frame with 500 rows and 8 columns:
+A data frame with 500 rows and 17 columns:
 \describe{
 \item{xc, xb, subtype}{The covariates.}
 \item{t, substudy}{The enrollment window and substudy assignment}

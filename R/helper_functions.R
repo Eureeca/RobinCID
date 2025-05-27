@@ -178,7 +178,7 @@ assign_prob_and_strata <- function(data,
                                    design = list(randomization_var_colnames = NULL,
                                                  randomization_table = NULL),
                                    method,
-                                   estimated_propensity = T,
+                                   estimated_propensity = TRUE,
                                    stratify_by = NULL
                                    ) {
   treatment <- estimand$tx_colname
