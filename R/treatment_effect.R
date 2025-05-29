@@ -196,7 +196,10 @@ print.treatment_effect <- function(x, ...) {
   cat(paste0(p,"Randomization Probabilities (among the entire concurrent and eligible (ECE) population):"), "\n")
   prob_tab <- prob_table_generate(data, post_strata, prob_mat, Z)
   row.names(prob_tab) <- 1:nrow(prob_tab)
-  print(prob_tab)
+
+  prob_tab_output_lines <- capture.output(print.data.frame(prob_tab, row.names = TRUE)) # Force row.names printing
+  cat(paste(prob_tab_output_lines, collapse = "\n"), "\n")
+
   cat("\n")
   cat("Nominal Level: ", alpha, "\n")
   cat("---------------------------\n")

@@ -10,4 +10,5 @@
 #' @importFrom stats predict residuals fitted model.response model.matrix coefficients family
 #' gaussian terms glm var family pnorm as.formula cov qnorm weighted.mean setNames aggregate reshape
 #' @importFrom MASS glm.nb
+#' @importFrom utils capture.output
 NULL
