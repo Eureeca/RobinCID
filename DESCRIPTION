@@ -1,6 +1,6 @@
 Package: RobinCID
 Title: Robust Inference in Complex Innovative Trial Design
-Version: 1.0.0
+Version: 1.0.0.9000
 Authors@R: c( 
     person("Yuhan", "Qian", , email = "yhqian@uw.edu", role = c("aut", "cre", "cph")),
     person("Ting", "Ye", role = "aut"),
