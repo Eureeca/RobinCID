@@ -23,8 +23,8 @@ predict_counterfactual <- function(fit.j,fit.k, treatment, treatments_for_compar
 }
 
 #' @export
-predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_compare,
-                                      prob_mat, post_strata, data = merge(find_data(fit.j),find_data(fit.k)),stabilize, settings) {
+predict_counterfactual.lm <- function(fit.j, fit.k, treatment, treatments_for_compare,
+                                      prob_mat, post_strata, data = merge(find_data(fit.j), find_data(fit.k)), stabilize, settings) {
   checkmate::assert_data_frame(data)
   checkmate::assert_subset(treatment, colnames(data))
   formula <- formula(fit.j)
@@ -77,9 +77,9 @@ predict_counterfactual.lm <- function(fit.j,fit.k, treatment, treatments_for_com
 }
 
 #' @export
-predict_counterfactual.glm <- function(fit.j,fit.k, treatment, treatments_for_compare,
-                                       prob_mat, post_strata, data = merge(find_data(fit.j),find_data(fit.k)),stabilize,settings){
-  predict_counterfactual.lm(fit.j = fit.j,fit.k=fit.k, treatment = treatment,
-                            treatments_for_compare = treatments_for_compare,prob_mat, post_strata = post_strata,
+predict_counterfactual.glm <- function(fit.j, fit.k, treatment, treatments_for_compare,
+                                       prob_mat, post_strata, data = merge(find_data(fit.j), find_data(fit.k)), stabilize, settings) {
+  predict_counterfactual.lm(fit.j = fit.j, fit.k = fit.k, treatment = treatment,
+                            treatments_for_compare = treatments_for_compare, prob_mat, post_strata = post_strata,
                             data = data, stabilize, settings)
 }

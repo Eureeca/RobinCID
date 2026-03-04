@@ -28,9 +28,12 @@ treatment_effect.prediction_cf <- function(
 
   checkmate::assert_function(eff_measure)
   contrast_name = deparse(substitute(eff_measure))
-  contrast = ifelse(contrast_name=="h_diff", "difference",
-                    ifelse(contrast_name=="h_ratio", "ratio",
-                           ifelse(contrast_name=="h_odds_ratio", "odds ratio", "customized")))
+  contrast <- switch(contrast_name,
+    h_diff = "difference",
+    h_ratio = "ratio",
+    h_odds_ratio = "odds ratio",
+    "customized"
+  )
   estimate <- object$estimation
   if (missing(pair)) {
     pair <- names(estimate$estimate)

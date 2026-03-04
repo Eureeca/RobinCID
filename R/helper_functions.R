@@ -1,5 +1,5 @@
 .return.error <- function(err){
-  if(length(err) > 0) stop(paste0(err, sep="\n"))
+  if(length(err) > 0) stop(paste(err, collapse = "\n"))
 }
 
 .check.null <- function(estimand, design, outcome_model){

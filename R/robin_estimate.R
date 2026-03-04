@@ -59,11 +59,11 @@ robin_estimate <- function(data,
   attr(prob_mat, "Z") <- Z
 
   if (identical(family$family, "Negative Binomial(NA)")) {
-    fit.j <-  MASS::glm.nb(formula, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
-    fit.k <-  MASS::glm.nb(formula, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
+    fit.j <- MASS::glm.nb(formula, data = data[data[[treatment]] == treatments_for_compare[1], ], ...)
+    fit.k <- MASS::glm.nb(formula, data = data[data[[treatment]] == treatments_for_compare[2], ], ...)
   } else {
-    fit.j <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
-    fit.k <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
+    fit.j <- glm(formula, family = family, data = data[data[[treatment]] == treatments_for_compare[1], ], ...)
+    fit.k <- glm(formula, family = family, data = data[data[[treatment]] == treatments_for_compare[2], ], ...)
   }
   settings <- list(method = method,
                   estimated_propensity = estimated_propensity,
@@ -74,12 +74,13 @@ robin_estimate <- function(data,
                                prob_mat = prob_mat, post_strata = post_strata,
                                data = data, stabilize = TRUE, settings = settings)
 
-  if (identical(contrast, "difference")) {
-    difference(pc, alpha = alpha)
-  } else if (identical(contrast, "risk_ratio")) {
-    risk_ratio(pc, alpha = alpha)
-  } else if (identical(contrast, "odds_ratio")) {
-    odds_ratio(pc, alpha = alpha)
+  if (is.character(contrast)) {
+    switch(contrast,
+      difference = difference(pc, alpha = alpha),
+      risk_ratio = risk_ratio(pc, alpha = alpha),
+      odds_ratio = odds_ratio(pc, alpha = alpha),
+      stop("Unknown contrast: '", contrast, "'. Use 'difference', 'risk_ratio', or 'odds_ratio'.")
+    )
   } else {
     assert_function(contrast)
     assert_function(contrast_jac, null.ok = TRUE)
