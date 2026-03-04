@@ -47,7 +47,7 @@ treatment_effect.prediction_cf <- function(
 
   inner_variance <- estimate$inner_variance
   if (missing(eff_jacobian)) {
-    trt_jac <- numDeriv::jacobian(eff_measure, estimate[pair])
+    trt_jac <- numDeriv::jacobian(eff_measure, estimate$estimate[pair])
   } else {
     assert_function(eff_jacobian)
     trt_jac <- eff_jacobian(estimate$estimate[pair])
@@ -150,7 +150,7 @@ h_odds_ratio <- function(x) {
 #' @rdname contrast
 #' @export
 h_jac_odds_ratio <- function(x) {
-  assert_numeric(x, lower = 0)
+  assert_numeric(x, lower = 0, upper = 1)
   n <- length(x)
   l <- h_lower_tri_idx(n)
   ret <- matrix(0, nrow = nrow(l), ncol = n)
@@ -185,8 +185,8 @@ print.treatment_effect <- function(x, ...) {
       cat(paste0("Post stratification is done by variable ", stratify_by, " specified by stratify_by.\n"))
           } else {cat(paste0("Post stratification is done by the joint levels of the randomization variables specified by randomization_var_colnames.\n"))}
   }
-  cat("Model : ", deparse(as.formula(attr(x, "fit"))), "\n")
-  cat("Family: ", attr(x, "fit")$family[[1]], "\n")
+  cat("Model : ", deparse(as.formula(attr(x, "fit.j"))), "\n")
+  cat("Family: ", attr(x, "fit.j")$family[[1]], "\n")
 
   if(settings$estimated_propensity) {cat("Estimated Propensity Score is used.\n")}
   p <- ""

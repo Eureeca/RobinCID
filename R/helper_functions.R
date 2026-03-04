@@ -28,6 +28,9 @@ validate_inputs <- function(estimand, design, outcome_model, estimated_propensit
   errors <- c(errors, .check.null(estimand, design, outcome_model))
   errors <- c(errors, .check.wt(design, estimated_propensity, method))
   .return.error(errors)
+  if (length(estimand$tx_to_compare) != 2L) {
+    stop("tx_to_compare must specify exactly two treatment levels.")
+  }
 }
 
 prob_table_generate <- function(data, post_strata, prob_mat, Z) {

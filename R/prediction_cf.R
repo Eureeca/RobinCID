@@ -9,6 +9,6 @@ NULL
 #' @keywords internal
 print.prediction_cf <- function(x, ...) {
   cat("counter-factual prediction\n")
-  print(x)
+  print.default(x)
   cat("\n")
 }

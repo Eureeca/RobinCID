@@ -12,6 +12,7 @@ robin_estimate <- function(data,
                            alpha, method,
                            ...){
   validate_inputs(estimand, design, outcome_model, estimated_propensity, method)
+  assert_number(alpha, lower = 0, upper = 1)
   treatment <- estimand$tx_colname
   treatments_for_compare <- estimand$tx_to_compare
 

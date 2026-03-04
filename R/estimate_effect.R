@@ -1,7 +1,7 @@
 #' Compute Estimates and Covariance Matrix
 #'
 #' @param ret counterfactual prediction
-#' @param treatments_for_compare description
+#' @param treatments_for_compare (`factor`) Treatment levels to compare.
 #' @param data (`data.frame`) data
 #' @param prob_mat (`data.frame`) treatment assignment probability
 #' @param post_strata (`character`) A string name of post-stratification variable
