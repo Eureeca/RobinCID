@@ -59,8 +59,8 @@ robin_estimate <- function(data,
   attr(prob_mat, "Z") <- Z
 
   if (identical(family$family, "Negative Binomial(NA)")) {
-    fit.j <-  MASS::glm.nb(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
-    fit.k <-  MASS::glm.nb(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
+    fit.j <-  MASS::glm.nb(formula, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
+    fit.k <-  MASS::glm.nb(formula, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
   } else {
     fit.j <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[1],], ...)
     fit.k <-  glm(formula, family = family, data = data[data[[treatment]]==treatments_for_compare[2],], ...)
